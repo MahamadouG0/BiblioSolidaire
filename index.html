@@ -36,8 +36,7 @@
         .view-compact h3 { font-size: 0.75rem !important; line-height: 1rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600; }
         .view-compact p.book-desc { display: none; }
         .view-compact .book-category-badge { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
-        .view-compact .book-delete-btn { display: none; }
-        .view-compact .book-edit-btn { display: none; }
+        .view-compact .book-delete-btn, .view-compact .book-edit-btn { display: none; }
         .view-compact .book-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem; margin-top: 0.35rem; }
         .view-compact .book-actions a, .view-compact .book-actions button { font-size: 0.6rem !important; padding: 0.25rem 0.15rem !important; width: 100%; justify-content: center; border-radius: 0 !important; }
 
@@ -47,11 +46,7 @@
         button, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         button:active, a:active { transform: scale(0.97); transition: transform 0.1s ease; }
 
-        @keyframes cardPop {
-            0%   { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.65); transform: scale(1); }
-            45%  { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); transform: scale(1.02); }
-            100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); transform: scale(1); }
-        }
+        @keyframes cardPop { 0% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.65); transform: scale(1); } 45% { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); transform: scale(1.02); } 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); transform: scale(1); } }
         .book-card.fav-pop { animation: cardPop 0.5s ease; }
         .book-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .book-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2); }
@@ -59,48 +54,32 @@
         .book-card { -webkit-user-select: none; user-select: none; }
         .book-card p, .book-card h3 { -webkit-user-select: text; user-select: text; }
 
-        /* ====== SKELETON LOADING ====== */
-        @keyframes shimmer {
-            0%   { background-position: -400px 0; }
-            100% { background-position: 400px 0; }
-        }
-        .skeleton {
-            background: linear-gradient(90deg, #1e293b 0px, #334155 40px, #1e293b 80px);
-            background-size: 600px 100%;
-            animation: shimmer 1.4s infinite linear;
-            border-radius: 4px;
-        }
-        .skeleton-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(148,163,184,0.12);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+        .skeleton { background: linear-gradient(90deg, #1e293b 0px, #334155 40px, #1e293b 80px); background-size: 600px 100%; animation: shimmer 1.4s infinite linear; border-radius: 4px; }
+        .skeleton-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(148,163,184,0.12); display: flex; flex-direction: column; overflow: hidden; }
         .skeleton-cover { width: 100%; aspect-ratio: 0.707; }
         .skeleton-line { height: 10px; margin: 6px 10px; }
-        .skeleton-line.w-3\/4 { width: 75%; }
-        .skeleton-line.w-1\/2 { width: 50%; }
-        .skeleton-line.w-2\/3 { width: 66%; }
-        .skeleton-line.h-8 { height: 26px; }
+        .skeleton-line.w-3\/4 { width: 75%; } .skeleton-line.w-1\/2 { width: 50%; } .skeleton-line.w-2\/3 { width: 66%; } .skeleton-line.h-8 { height: 26px; }
 
-        /* ====== BADGE ANONYME ====== */
-        .pulse-dot {
-            display: inline-block;
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #fbbf24;
-            animation: pulseDot 1.8s ease-in-out infinite;
-        }
-        @keyframes pulseDot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50%      { opacity: .5; transform: scale(1.4); }
-        }
+        .pulse-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #fbbf24; animation: pulseDot 1.8s ease-in-out infinite; }
+        @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(1.4); } }
+
+        /* ====== CARROUSEL HORIZONTAL (Tendances) ====== */
+        .h-scroll { display: flex; gap: 0.85rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.5rem; }
+        .h-scroll > * { scroll-snap-align: start; flex-shrink: 0; width: 160px; }
+        @media (min-width: 640px) { .h-scroll > * { width: 180px; } }
+
+        /* ====== TAG BADGE ====== */
+        .tag-badge { display: inline-flex; align-items: center; gap: 0.15rem; padding: 0.1rem 0.4rem; background: rgba(13, 148, 136, 0.15); color: #5eead4; border: 1px solid rgba(13, 148, 136, 0.3); border-radius: 0.35rem; font-size: 0.55rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+        .tag-badge:hover { background: rgba(13, 148, 136, 0.3); color: #f0fdfa; }
+
+        /* ====== STAT CARD ====== */
+        .stat-card { position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: radial-gradient(circle, rgba(20, 184, 166, 0.25) 0%, transparent 70%); border-radius: 50%; }
     </style>
 </head>
 <body class="bg-[#0b1120] text-slate-100 min-h-screen selection:bg-teal-500 selection:text-white transition-colors duration-300 pb-24 lg:pb-12">
     
-    <!-- NAVIGATION -->
     <nav class="sticky top-0 z-40 bg-white/80 dark:bg-[#0b1120]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm">
         <div class="container mx-auto px-4 max-w-7xl h-16 flex items-center justify-between">
             <a href="#" onclick="switchTab('accueil'); return false;" class="flex items-center gap-3 font-bold text-teal-600 dark:text-teal-400 text-base sm:text-lg group">
@@ -117,17 +96,17 @@
                 <div class="h-5 w-[1px] bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
 
                 <div class="flex items-center gap-2">
-                    <button id="exportBtn" type="button" title="Exporter la bibliothèque (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
+                    <button id="exportBtn" type="button" title="Exporter (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                     </button>
-                    <button id="importBtn" type="button" title="Importer une sauvegarde (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
+                    <button id="importBtn" type="button" title="Importer (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                     <input type="file" id="importFile" accept=".json" class="hidden">
 
                     <button id="themeToggleBtn" type="button" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80" aria-label="Basculer le thème">
-                        <svg id="sunIcon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                        <svg id="moonIcon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                        <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                     </button>
                 </div>
             </div>
@@ -136,7 +115,7 @@
 
     <div class="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl">
         
-        <!-- VUE 1 : ACCUEIL -->
+        <!-- VUE 1 : ACCUEIL ENRICHI -->
         <div id="viewAccueil" class="space-y-8">
             <header class="text-center max-w-2xl mx-auto space-y-3 pt-2">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold tracking-wide uppercase border border-teal-500/20">Plateforme collaborative</span>
@@ -144,6 +123,7 @@
                 <p class="text-sm sm:text-base text-slate-400">Partagez, évaluez et téléchargez des ressources numériques de qualité en toute simplicité.</p>
             </header>
 
+            <!-- HERO -->
             <div class="bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 rounded-2xl p-6 sm:p-8 text-white shadow-2xl shadow-teal-500/20 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden border border-white/10">
                 <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
                 <div class="space-y-2 relative z-10 text-center sm:text-left">
@@ -156,6 +136,58 @@
                 </div>
             </div>
 
+            <!-- STATS GLOBALES -->
+            <div id="globalStats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <!-- Skeleton stats -->
+                <div class="stat-card bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 text-center">
+                    <div class="skeleton mx-auto" style="width:50%;height:24px;margin-bottom:8px;"></div>
+                    <div class="skeleton mx-auto" style="width:70%;height:10px;"></div>
+                </div>
+                <div class="stat-card bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 text-center">
+                    <div class="skeleton mx-auto" style="width:50%;height:24px;margin-bottom:8px;"></div>
+                    <div class="skeleton mx-auto" style="width:70%;height:10px;"></div>
+                </div>
+                <div class="stat-card bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 text-center">
+                    <div class="skeleton mx-auto" style="width:50%;height:24px;margin-bottom:8px;"></div>
+                    <div class="skeleton mx-auto" style="width:70%;height:10px;"></div>
+                </div>
+                <div class="stat-card bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 text-center">
+                    <div class="skeleton mx-auto" style="width:50%;height:24px;margin-bottom:8px;"></div>
+                    <div class="skeleton mx-auto" style="width:70%;height:10px;"></div>
+                </div>
+            </div>
+
+            <!-- TENDANCES -->
+            <section id="trendingSection" class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>📈</span> Tendances du moment
+                    </h2>
+                    <button onclick="switchTab('bibliotheque')" class="text-xs text-teal-400 hover:underline font-semibold">Tout voir →</button>
+                </div>
+                <div id="trendingList" class="h-scroll no-scrollbar"></div>
+            </section>
+
+            <!-- NOUVEAUTÉS -->
+            <section id="recentSection" class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>✨</span> Derniers ajouts
+                    </h2>
+                    <button onclick="switchTab('bibliotheque')" class="text-xs text-teal-400 hover:underline font-semibold">Tout voir →</button>
+                </div>
+                <div id="recentList" class="h-scroll no-scrollbar"></div>
+            </section>
+
+            <!-- CATÉGORIES POPULAIRES -->
+            <section id="catStatsSection" class="space-y-3">
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>🏷️</span> Explorer par catégorie
+                </h2>
+                <div id="catStatsList" class="flex flex-wrap gap-2"></div>
+            </section>
+
+            <!-- FORMULAIRE -->
             <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800/80 max-w-2xl mx-auto">
                 <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-100 dark:border-slate-800">
                     <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -211,6 +243,14 @@
                     </div>
 
                     <div class="space-y-1">
+                        <label for="tagsInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            🏷️ Tags <span class="text-slate-400 font-normal">(séparés par des virgules, max 5)</span>
+                        </label>
+                        <input type="text" id="tagsInput" maxlength="150" placeholder="Ex: python, machine learning, débutant"
+                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition">
+                    </div>
+
+                    <div class="space-y-1">
                         <label for="description" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Description</label>
                         <textarea id="description" rows="3" maxlength="500" placeholder="Courte description de l'ouvrage..."
                                   class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"></textarea>
@@ -229,9 +269,7 @@
                         </div>
 
                         <div>
-                            <label for="coverImage" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                📁 Importer un fichier <span class="text-teal-400">(prioritaire)</span>
-                            </label>
+                            <label for="coverImage" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">📁 Importer un fichier <span class="text-teal-400">(prioritaire)</span></label>
                             <input type="file" id="coverImage" accept="image/*"
                                    class="block w-full text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-500 transition">
                         </div>
@@ -243,9 +281,7 @@
                         </div>
 
                         <div>
-                            <label for="coverUrl" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                🌐 Lien URL de l'image <span id="coverUrlHint" class="text-slate-400 font-normal"></span>
-                            </label>
+                            <label for="coverUrl" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">🌐 Lien URL de l'image <span id="coverUrlHint" class="text-slate-400 font-normal"></span></label>
                             <input type="url" id="coverUrl" placeholder="https://exemple.com/couverture.jpg"
                                    class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition">
                             <p id="coverUrlError" class="text-red-400 text-xs mt-1 hidden" role="alert"></p>
@@ -267,7 +303,7 @@
                                 </label>
                                 <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">Utilisée comme couverture si aucune image n'est fournie.</p>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer shrink-0" aria-label="Activer la conversion PDF">
+                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
                                 <input type="checkbox" id="autoPdfCover" class="sr-only peer">
                                 <div class="w-11 h-6 bg-slate-700 peer-checked:bg-teal-600 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/40 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow peer-checked:after:translate-x-5"></div>
                             </label>
@@ -296,11 +332,11 @@
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </span>
-                        <input type="text" id="searchInput" placeholder="Rechercher par titre, auteur..."
+                        <input type="text" id="searchInput" placeholder="Rechercher par titre, auteur, tag..."
                                class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
                     </div>
                     <div class="md:col-span-3">
-                        <select id="minRatingFilter" aria-label="Filtrer par note minimale" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                        <select id="minRatingFilter" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
                             <option value="0">Toutes les notes ⭐</option>
                             <option value="3">3 étoiles et plus ⭐⭐⭐</option>
                             <option value="4">4 étoiles et plus ⭐⭐⭐⭐</option>
@@ -308,7 +344,7 @@
                         </select>
                     </div>
                     <div class="md:col-span-4 flex items-center gap-3">
-                        <select id="sortSelect" aria-label="Trier les livres" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                        <select id="sortSelect" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
                             <option value="recent">Tri : Plus récents</option>
                             <option value="popular">Tri : Plus populaires</option>
                             <option value="rating">Tri : Mieux notés ⭐</option>
@@ -350,7 +386,7 @@
         <div id="viewProfile" class="space-y-6 hidden max-w-lg mx-auto">
             <header class="text-center space-y-1">
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mon Profil</h1>
-                <p class="text-xs sm:text-sm text-slate-400">Gérez vos informations personnelles et vos statistiques de lecture.</p>
+                <p class="text-xs sm:text-sm text-slate-400">Gérez vos informations personnelles et vos statistiques.</p>
             </header>
 
             <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 text-center space-y-6">
@@ -360,8 +396,7 @@
                 <div>
                     <h2 id="profileNameDisplay" class="text-lg font-bold text-slate-900 dark:text-white">Membre solidaire</h2>
                     <p id="profileAccountStatus" class="text-xs text-slate-400 mt-0.5 flex items-center justify-center gap-1.5">
-                        <span class="pulse-dot"></span>
-                        <span>Compte anonyme</span>
+                        <span class="pulse-dot"></span><span>Compte anonyme</span>
                     </p>
                 </div>
 
@@ -382,7 +417,7 @@
                             <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                             <div class="flex-1">
                                 <p class="text-xs font-semibold text-amber-300">Sauvegardez votre compte</p>
-                                <p class="text-[11px] text-amber-200/80 mt-0.5 leading-snug">Votre compte est anonyme. Ajoutez un email pour retrouver vos livres et favoris sur tous vos appareils.</p>
+                                <p class="text-[11px] text-amber-200/80 mt-0.5 leading-snug">Votre compte est anonyme. Ajoutez un email pour retrouver vos livres sur tous vos appareils.</p>
                             </div>
                         </div>
                         <button id="upgradeBtn" type="button" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">
@@ -403,9 +438,7 @@
                 </div>
 
                 <div id="signOutSection" class="pt-2 hidden">
-                    <button id="signOutBtn" type="button" class="text-xs text-slate-400 hover:text-red-400 transition font-medium">
-                        Se déconnecter
-                    </button>
+                    <button id="signOutBtn" type="button" class="text-xs text-slate-400 hover:text-red-400 transition font-medium">Se déconnecter</button>
                 </div>
             </div>
         </div>
@@ -433,16 +466,14 @@
         <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
                 <div>
-                    <h3 id="modalBookTitle" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Avis et Commentaires</h3>
-                    <p class="text-xs text-slate-400">Partagez votre avis sur cet ouvrage</p>
+                    <h3 id="modalBookTitle" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Avis</h3>
+                    <p class="text-xs text-slate-400">Partagez votre avis</p>
                 </div>
-                <button id="closeModalBtn" aria-label="Fermer la fenêtre modale" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                <button id="closeModalBtn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-
             <div id="modalCommentsList" class="flex-1 overflow-y-auto space-y-3 pr-1 mb-4 max-h-60"></div>
-
             <form id="reviewForm" class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <input type="hidden" id="modalBookId">
                 <div>
@@ -462,7 +493,7 @@
                 </div>
                 <div>
                     <label for="commentText" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Votre commentaire</label>
-                    <textarea id="commentText" rows="2" required placeholder="Qu'avez-vous pensé de ce livre ?"
+                    <textarea id="commentText" rows="2" required placeholder="Votre avis..."
                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></textarea>
                 </div>
                 <button type="submit" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-teal-600/25">
@@ -472,59 +503,32 @@
         </div>
     </div>
 
-    <!-- Modal Édition Livre -->
+    <!-- Modal Édition -->
     <div id="editModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
-                <div>
-                    <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Modifier le livre</h3>
-                    <p class="text-xs text-slate-400">Corrigez les informations</p>
-                </div>
-                <button id="closeEditBtn" aria-label="Fermer" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Modifier le livre</h3>
+                <button id="closeEditBtn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-
             <form id="editForm" class="space-y-3.5">
                 <input type="hidden" id="editBookId">
-                <div class="space-y-1">
-                    <label for="editTitle" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Titre</label>
-                    <input type="text" id="editTitle" required maxlength="150"
-                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
-                </div>
-                <div class="space-y-1">
-                    <label for="editAuthor" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Auteur</label>
-                    <input type="text" id="editAuthor" required maxlength="100"
-                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
-                </div>
-                <div class="space-y-1">
-                    <label for="editCategory" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Catégorie</label>
-                    <input type="text" id="editCategory" required maxlength="80"
-                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
-                </div>
-                <div class="space-y-1">
-                    <label for="editDescription" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Description</label>
-                    <textarea id="editDescription" rows="3" maxlength="500"
-                              class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></textarea>
-                </div>
-                <div class="space-y-1">
-                    <label for="editCoverUrl" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">URL de la couverture (optionnel)</label>
-                    <input type="url" id="editCoverUrl" placeholder="https://..."
-                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
-                </div>
+                <div class="space-y-1"><label for="editTitle" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Titre</label><input type="text" id="editTitle" required maxlength="150" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></div>
+                <div class="space-y-1"><label for="editAuthor" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Auteur</label><input type="text" id="editAuthor" required maxlength="100" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></div>
+                <div class="space-y-1"><label for="editCategory" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Catégorie</label><input type="text" id="editCategory" required maxlength="80" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></div>
+                <div class="space-y-1"><label for="editTags" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Tags (séparés par virgules)</label><input type="text" id="editTags" maxlength="150" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></div>
+                <div class="space-y-1"><label for="editDescription" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Description</label><textarea id="editDescription" rows="3" maxlength="500" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></textarea></div>
+                <div class="space-y-1"><label for="editCoverUrl" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">URL de la couverture (optionnel)</label><input type="url" id="editCoverUrl" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></div>
                 <div class="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" id="cancelEditBtn" class="flex-1 bg-slate-100 dark:bg-[#0b1120] text-slate-700 dark:text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm hover:bg-slate-200 dark:hover:bg-slate-800 transition">
-                        Annuler
-                    </button>
-                    <button type="submit" class="flex-1 bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-teal-600/25">
-                        Enregistrer
-                    </button>
+                    <button type="button" id="cancelEditBtn" class="flex-1 bg-slate-100 dark:bg-[#0b1120] text-slate-700 dark:text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition">Annuler</button>
+                    <button type="submit" class="flex-1 bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition">Enregistrer</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal Login (conversion anonyme → permanent) -->
+    <!-- Modal Login -->
     <div id="loginModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
@@ -532,24 +536,20 @@
                     <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Devenir membre permanent</h3>
                     <p class="text-xs text-slate-400">Ajoutez un email pour sauvegarder votre compte</p>
                 </div>
-                <button id="closeLoginBtn" aria-label="Fermer" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                <button id="closeLoginBtn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
             <div id="loginStep1">
-                <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-                    Vous recevrez un <strong class="text-teal-400">lien magique</strong> par email. Cliquez dessus pour confirmer votre adresse — vos livres et favoris sont automatiquement conservés.
-                </p>
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">Vous recevrez un <strong class="text-teal-400">lien magique</strong> par email. Cliquez dessus pour confirmer votre adresse — vos livres et favoris sont automatiquement conservés.</p>
                 <form id="loginForm" class="space-y-3">
                     <div class="space-y-1">
                         <label for="loginEmail" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Adresse email</label>
                         <input type="email" id="loginEmail" required placeholder="vous@exemple.com"
                                class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
                     </div>
-                    <button type="submit" id="loginSubmitBtn" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-teal-600/25 disabled:opacity-50">
-                        Envoyer le lien magique
-                    </button>
+                    <button type="submit" id="loginSubmitBtn" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-teal-600/25 disabled:opacity-50">Envoyer le lien magique</button>
                 </form>
             </div>
 
@@ -558,14 +558,9 @@
                     <svg class="w-7 h-7 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                 </div>
                 <h4 class="text-sm font-bold text-slate-900 dark:text-white">Vérifiez votre email</h4>
-                <p class="text-xs text-slate-400 leading-relaxed">
-                    Un lien de confirmation a été envoyé à<br>
-                    <strong id="loginSentTo" class="text-teal-400"></strong>
-                </p>
+                <p class="text-xs text-slate-400 leading-relaxed">Un lien de confirmation a été envoyé à<br><strong id="loginSentTo" class="text-teal-400"></strong></p>
                 <p class="text-[11px] text-slate-500">Le lien expire dans 1 heure. Pensez à vérifier vos spams.</p>
-                <button type="button" id="loginBackBtn" class="text-xs text-teal-400 hover:underline font-semibold pt-2">
-                    Utiliser une autre adresse
-                </button>
+                <button type="button" id="loginBackBtn" class="text-xs text-teal-400 hover:underline font-semibold pt-2">Utiliser une autre adresse</button>
             </div>
         </div>
     </div>
@@ -579,98 +574,58 @@
     (function () {
         'use strict';
 
-        /* =========================================================
-           SUPABASE — CONFIGURATION
-           ========================================================= */
         const SUPABASE_URL      = 'https://evxzjmqbrowwjhvsvgqv.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_kD1Qh2sIOJIEYL3a3_l8Rw_5JE_3rFi';
 
-        let sb             = null;
-        let currentUserId  = null;
-        let currentUserEmail = null;
-        let isAnonymousUser = true;
-        let realtimeChannel = null;
-        let realtimeReloadTimer = null;
+        let sb = null, currentUserId = null, currentUserEmail = null, isAnonymousUser = true;
+        let realtimeChannel = null, realtimeReloadTimer = null;
 
-        const LEGACY_KEY    = 'solidarity_books_v4';
-        const STORAGE_KEY   = 'solidarity_books_v4';
+        const STORAGE_KEY = 'solidarity_books_v4';
+        const LEGACY_KEY  = 'solidarity_books_v4';
         const ALLOWED_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
-        const DRIVE_ID_RE   = /(?:\/file\/d\/|\/d\/|[?&]id=)([a-zA-Z0-9_-]{10,})/;
+        const DRIVE_ID_RE = /(?:\/file\/d\/|\/d\/|[?&]id=)([a-zA-Z0-9_-]{10,})/;
         const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        const COVER_MAX_WIDTH   = 640;
-        const CUSTOM_MAX_WIDTH  = 600;
-        const A4_RATIO_NUM = 210 / 297;
-        const CUSTOM_RATIO_MIN = 0.5;
-        const CUSTOM_RATIO_MAX = 1.2;
-        const PDF_RATIO_MIN = 0.3;
-        const PDF_RATIO_MAX = 3.0;
+        const COVER_MAX_WIDTH = 640, CUSTOM_MAX_WIDTH = 600;
+        const A4_RATIO_NUM = 210 / 297, CUSTOM_RATIO_MIN = 0.5, CUSTOM_RATIO_MAX = 1.2;
+        const PDF_RATIO_MIN = 0.3, PDF_RATIO_MAX = 3.0;
 
         const SERVER_PAGE_SIZE = 30;
-        let serverPage       = 0;
-        let serverHasMore    = true;
-        let serverIsLoading  = false;
-        let initialLoadDone  = false;
-
+        let serverPage = 0, serverHasMore = true, serverIsLoading = false, initialLoadDone = false;
         let displayedCount = 12;
         const UI_PAGE_SIZE = 12;
-
         let filteredBooksCache = [];
 
-        let currentSearchQuery   = '';
-        let currentCategoryFilter = 'TOUT';
-        let currentMinRating     = 0;
-        let currentSort          = 'recent';
-        let selectedRating       = 5;
-        let favFlashId           = null;
-        let currentView          = 'grid';
-
+        let currentSearchQuery = '', currentCategoryFilter = 'TOUT', currentTagFilter = null;
+        let currentMinRating = 0, currentSort = 'recent', selectedRating = 5;
+        let favFlashId = null, currentView = 'grid';
         const ratioFixAttempted = new Set();
 
-        let booksCache = [];
-        const favoritesSet  = new Set();
+        let booksCache = [], tagsCache = new Map(); // tag_id -> tag
+        let bookTagsMap = new Map(); // book_id -> [tag names]
+        const favoritesSet = new Set();
         const commentsCache = new Map();
-        const coverCache    = new Map();
+        const coverCache = new Map();
         const pendingCovers = new Set();
         const attemptedCovers = new Set();
 
         const $ = (id) => document.getElementById(id);
-
-        function uid() {
-            if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-            return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
-        }
-
-        function withTimeout(promise, ms, label) {
-            return new Promise((resolve, reject) => {
-                const timer = setTimeout(() => reject(new Error(label || 'Délai dépassé')), ms);
-                promise.then(v => { clearTimeout(timer); resolve(v); }, e => { clearTimeout(timer); reject(e); });
-            });
-        }
-
-        function escapeHtml(str) {
-            return String(str || '').replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
-        }
+        function uid() { return (window.crypto && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10); }
+        function withTimeout(p, ms, label) { return new Promise((res, rej) => { const t = setTimeout(() => rej(new Error(label || 'Délai dépassé')), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); }); }
+        function escapeHtml(s) { return String(s || '').replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)); }
 
         const PLACEHOLDER_COVER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 594">' +
-            '<rect width="420" height="594" fill="#0b1120"/>' +
-            '<rect x="50" y="60" width="320" height="474" rx="16" fill="#1e293b" stroke="#334155" stroke-width="3"/>' +
-            '<path d="M100 170h220M100 230h220M100 290h160" stroke="#475569" stroke-width="12" stroke-linecap="round"/>' +
-            '<text x="210" y="460" font-family="sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Aperçu indisponible</text>' +
-            '</svg>');
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 594"><rect width="420" height="594" fill="#0b1120"/><rect x="50" y="60" width="320" height="474" rx="16" fill="#1e293b" stroke="#334155" stroke-width="3"/><path d="M100 170h220M100 230h220M100 290h160" stroke="#475569" stroke-width="12" stroke-linecap="round"/><text x="210" y="460" font-family="sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Aperçu indisponible</text></svg>');
 
         function analyzeLink(raw) {
-            const trimmed = String(raw || '').trim();
-            if (!trimmed) return { ok: false, error: 'Le lien est obligatoire.' };
-            let url;
-            try { url = new URL(trimmed); } catch { return { ok: false, error: 'Lien invalide.' }; }
+            const t = String(raw || '').trim();
+            if (!t) return { ok: false, error: 'Le lien est obligatoire.' };
+            let url; try { url = new URL(t); } catch { return { ok: false, error: 'Lien invalide.' }; }
             if (url.protocol !== 'https:') return { ok: false, error: 'Le lien doit utiliser HTTPS.' };
-            const idMatch = trimmed.match(DRIVE_ID_RE);
+            const m = t.match(DRIVE_ID_RE);
             if (ALLOWED_HOSTS.has(url.hostname)) {
-                if (!idMatch) return { ok: false, error: "Impossible d'extraire l'identifiant du fichier Drive." };
-                const id = idMatch[1];
+                if (!m) return { ok: false, error: "Impossible d'extraire l'identifiant Drive." };
+                const id = m[1];
                 return { ok: true, kind: 'drive', fileId: id,
                     directUrl: 'https://drive.google.com/file/d/' + id + '/view',
                     previewUrl: 'https://drive.google.com/file/d/' + id + '/preview',
@@ -691,132 +646,203 @@
                 favorite: favoritesSet.has(r.id),
                 comments: commentsCache.get(r.id) || [],
                 comments_count: Array.isArray(r.comments) && r.comments[0] ? (r.comments[0].count ?? 0) : (commentsCache.get(r.id)?.length || 0),
+                tags: bookTagsMap.get(r.id) || [],
                 created_at: r.created_at, user_id: r.user_id,
                 _canDelete: r.user_id === currentUserId
             };
         }
 
-        /* =========================================================
-           CHARGEMENT PAGINÉ
-           ========================================================= */
+        // === DATA LOADING ===
         async function loadFavorites() {
             favoritesSet.clear();
             if (!currentUserId) return;
             const { data, error } = await sb.from('favorites').select('book_id');
-            if (error) { console.warn('favorites:', error.message); return; }
+            if (error) { console.warn(error); return; }
             (data || []).forEach(f => favoritesSet.add(f.book_id));
+        }
+
+        async function loadTagsAndBookTags() {
+            const { data: tags, error: e1 } = await sb.from('tags').select('*');
+            if (!e1 && tags) { tagsCache.clear(); tags.forEach(t => tagsCache.set(t.id, t)); }
+            const { data: bt, error: e2 } = await sb.from('book_tags').select('book_id, tag_id');
+            if (!e2 && bt) {
+                bookTagsMap.clear();
+                for (const row of bt) {
+                    const tag = tagsCache.get(row.tag_id);
+                    if (!tag) continue;
+                    if (!bookTagsMap.has(row.book_id)) bookTagsMap.set(row.book_id, []);
+                    bookTagsMap.get(row.book_id).push(tag.name);
+                }
+            }
         }
 
         async function loadBooksPage(reset) {
             if (serverIsLoading) return;
             if (!reset && !serverHasMore) return;
-
             serverIsLoading = true;
-            if (reset) {
-                serverPage    = 0;
-                serverHasMore = true;
-                booksCache    = [];
-            }
-
+            if (reset) { serverPage = 0; serverHasMore = true; booksCache = []; }
             const from = serverPage * SERVER_PAGE_SIZE;
-            const to   = from + SERVER_PAGE_SIZE - 1;
-
-            const { data, error } = await sb
-                .from('books')
+            const to = from + SERVER_PAGE_SIZE - 1;
+            const { data, error } = await sb.from('books')
                 .select('*, comments(count)')
                 .order('created_at', { ascending: false })
                 .range(from, to);
-
             serverIsLoading = false;
-
-            if (error) {
-                console.error(error);
-                showToast('Chargement impossible.', 'error');
-                return;
-            }
-
+            if (error) { console.error(error); showToast('Chargement impossible.', 'error'); return; }
             const batch = (data || []).map(rowToBook);
             booksCache.push(...batch);
-
             if (batch.length < SERVER_PAGE_SIZE) serverHasMore = false;
             serverPage += 1;
             initialLoadDone = true;
-
             scheduleRender();
+            scheduleHomeRefresh();
         }
 
-        async function reloadFromScratch() {
-            await loadBooksPage(true);
-        }
+        async function reloadFromScratch() { await loadBooksPage(true); }
 
         async function loadComments(bookId) {
-            const { data, error } = await sb
-                .from('comments')
-                .select('*')
-                .eq('book_id', bookId)
-                .order('created_at', { ascending: false });
-            if (error) { console.warn('comments:', error.message); return []; }
+            const { data, error } = await sb.from('comments').select('*').eq('book_id', bookId).order('created_at', { ascending: false });
+            if (error) { console.warn(error); return []; }
             const list = data.map(c => ({ id: c.id, author: c.author, text: c.text, rating: c.rating, date: c.created_at, user_id: c.user_id }));
             commentsCache.set(bookId, list);
             return list;
         }
 
-        /* =========================================================
-           UPLOAD COUVERTURE
-           ========================================================= */
-        async function uploadCoverDataUrl(dataUrl) {
-            const blob = await (await fetch(dataUrl)).blob();
-            const ext  = blob.type.includes('png') ? 'png' : 'jpg';
-            const path = `${currentUserId}/${uid()}.${ext}`;
-            const { error } = await sb.storage.from('covers').upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
-            if (error) throw error;
-            const { data } = sb.storage.from('covers').getPublicUrl(path);
-            return { url: data.publicUrl, path };
+        // === STATS GLOBALES ===
+        async function loadGlobalStats() {
+            const { data, error } = await sb.rpc('library_stats');
+            if (error) { console.warn('stats:', error.message); return; }
+            renderGlobalStats(data);
         }
 
-        /* =========================================================
-           MIGRATION LOCALSTORAGE → SUPABASE
-           ========================================================= */
-        async function migrateLocalStorageToSupabase() {
-            const done = localStorage.getItem('supabase_migrated_v4');
-            if (done) return;
+        function renderGlobalStats(s) {
+            const el = $('globalStats');
+            const stats = [
+                { val: s.total_books, label: 'Livres partagés', icon: '📚' },
+                { val: s.total_users, label: 'Contributeurs', icon: '👥' },
+                { val: s.total_downloads, label: 'Téléchargements', icon: '⬇️' },
+                { val: s.total_reviews, label: 'Avis laissés', icon: '⭐' },
+            ];
+            el.innerHTML = '';
+            for (const st of stats) {
+                const div = document.createElement('div');
+                div.className = 'stat-card bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 text-center';
+                div.innerHTML = `
+                    <div class="text-xl mb-1">${st.icon}</div>
+                    <div class="text-2xl font-extrabold text-teal-400">${st.val ?? 0}</div>
+                    <div class="text-[10px] text-slate-400 font-medium mt-0.5 uppercase tracking-wide">${st.label}</div>
+                `;
+                el.append(div);
+            }
+        }
 
-            let legacy = null;
-            try {
-                legacy = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY) || '[]');
-            } catch { legacy = null; }
+        // === SECTION ACCUEIL : TENDANCES / NOUVEAUTÉS / CATÉGORIES ===
+        let homeRefreshQueued = false;
+        function scheduleHomeRefresh() {
+            if (homeRefreshQueued) return;
+            homeRefreshQueued = true;
+            requestAnimationFrame(() => { homeRefreshQueued = false; renderHomeSections(); });
+        }
 
-            if (Array.isArray(legacy) && legacy.length && currentUserId) {
-                const rows = legacy.map(b => ({
-                    user_id: currentUserId,
-                    title: String(b.title || 'Sans titre').slice(0, 150),
-                    author: String(b.author || 'Inconnu').slice(0, 100),
-                    category: String(b.category || 'Autre').slice(0, 80),
-                    description: String(b.description || '').slice(0, 1000),
-                    kind: b.kind === 'drive' ? 'drive' : 'external',
-                    file_id: b.fileId || null,
-                    direct_url: b.direct_url,
-                    preview_url: b.preview_url || null,
-                    thumb_url: b.thumb_url || null,
-                    cover_url: b.cover_url || null,
-                    cover_ratio: b.cover_ratio || null,
-                    cover_source: b.cover_source || null,
-                    auto_pdf_cover: !!b.auto_pdf_cover,
-                    downloads: b.downloads || 0
-                })).filter(r => r.direct_url);
+        function createMiniBookCard(book) {
+            const card = document.createElement('a');
+            card.href = '#';
+            card.className = 'book-card block bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-md hover:shadow-xl transition';
+            card.addEventListener('click', (e) => { e.preventDefault(); openReviewsModal(book.id); });
 
-                if (rows.length) {
-                    const { error } = await sb.from('books').insert(rows);
-                    if (error) console.warn('Migration échouée :', error.message);
-                    else showToast(`${rows.length} livre(s) migré(s) vers le cloud ☁️`);
+            const cover = document.createElement('div');
+            cover.className = 'relative overflow-hidden bg-slate-100 dark:bg-[#0b1120]';
+            cover.style.aspectRatio = '0.707';
+
+            const effectiveRatio = (book.cover_ratio && isFinite(book.cover_ratio) && book.cover_ratio > 0) ? book.cover_ratio : A4_RATIO_NUM;
+            cover.style.setProperty('--cover-ratio', String(effectiveRatio));
+
+            const img = document.createElement('img');
+            img.src = coverSrcFor(book);
+            img.alt = book.title;
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.className = 'absolute inset-0 w-full h-full ' + (book.cover_source === 'pdf' ? 'object-contain' : 'object-cover');
+            img.addEventListener('error', () => { if (img.src !== PLACEHOLDER_COVER) img.src = PLACEHOLDER_COVER; }, { once: true });
+            cover.append(img);
+
+            const content = document.createElement('div');
+            content.className = 'p-2';
+            const h = document.createElement('h4');
+            h.className = 'text-[11px] font-bold text-slate-900 dark:text-white line-clamp-2 leading-tight';
+            h.textContent = book.title || 'Sans titre';
+            content.append(h);
+            const a = document.createElement('p');
+            a.className = 'text-[9px] text-slate-400 mt-0.5 line-clamp-1';
+            a.textContent = book.author || 'Inconnu';
+            content.append(a);
+
+            card.append(cover, content);
+            return card;
+        }
+
+        function renderHomeSections() {
+            // Tendances : top 8 par downloads
+            const trending = [...booksCache].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 8).filter(b => b.downloads > 0);
+            const tl = $('trendingList');
+            if (tl) {
+                tl.textContent = '';
+                if (trending.length === 0) {
+                    const p = document.createElement('p');
+                    p.className = 'text-xs text-slate-500 italic py-4';
+                    p.textContent = 'Aucun livre tendance pour le moment.';
+                    tl.append(p);
+                } else {
+                    trending.forEach(b => tl.append(createMiniBookCard(b)));
                 }
             }
-            localStorage.setItem('supabase_migrated_v4', '1');
+
+            // Nouveautés : 8 derniers
+            const recent = [...booksCache].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 8);
+            const rl = $('recentList');
+            if (rl) {
+                rl.textContent = '';
+                if (recent.length === 0) {
+                    const p = document.createElement('p');
+                    p.className = 'text-xs text-slate-500 italic py-4';
+                    p.textContent = 'Aucun livre pour le moment. Soyez le premier à partager !';
+                    rl.append(p);
+                } else {
+                    recent.forEach(b => rl.append(createMiniBookCard(b)));
+                }
+            }
+
+            // Catégories populaires (top 12 par count)
+            const catCount = {};
+            booksCache.forEach(b => { if (b.category) catCount[b.category] = (catCount[b.category] || 0) + 1; });
+            const sorted = Object.entries(catCount).sort((a, b) => b[1] - a[1]).slice(0, 12);
+            const cl = $('catStatsList');
+            if (cl) {
+                cl.textContent = '';
+                if (sorted.length === 0) {
+                    const p = document.createElement('p');
+                    p.className = 'text-xs text-slate-500 italic';
+                    p.textContent = 'Aucune catégorie pour le moment.';
+                    cl.append(p);
+                } else {
+                    for (const [cat, count] of sorted) {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-[#0b1120] text-slate-300 border border-slate-200/50 dark:border-slate-800 hover:bg-teal-600 hover:text-white hover:border-teal-600 transition';
+                        btn.innerHTML = `<span>${escapeHtml(cat)}</span><span class="text-[9px] opacity-60">${count}</span>`;
+                        btn.addEventListener('click', () => {
+                            currentCategoryFilter = cat;
+                            displayedCount = UI_PAGE_SIZE;
+                            switchTab('bibliotheque');
+                            renderBooks();
+                        });
+                        cl.append(btn);
+                    }
+                }
+            }
         }
 
-        /* =========================================================
-           TOAST
-           ========================================================= */
+        // === TOAST ===
         let toastTimer;
         function showToast(message, type) {
             const el = $('toast');
@@ -826,38 +852,28 @@
             el.hidden = false;
             requestAnimationFrame(() => { el.style.opacity = '1'; });
             clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                el.style.opacity = '0';
-                setTimeout(() => { el.hidden = true; }, 300);
-            }, 3000);
+            toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.hidden = true; }, 300); }, 3000);
         }
 
-        /* =========================================================
-           IMAGES / PDF
-           ========================================================= */
+        // === IMAGES / PDF ===
         function imageLoads(url, timeout) {
             return new Promise((resolve) => {
-                const img = new Image();
-                let done = false;
+                const img = new Image(); let done = false;
                 const finish = (ok) => { if (done) return; done = true; resolve(ok); };
-                const timer = setTimeout(() => finish(false), timeout || 8000);
-                img.onload = () => { clearTimeout(timer); finish(img.naturalWidth > 0 && img.naturalHeight > 0); };
-                img.onerror = () => { clearTimeout(timer); finish(false); };
-                img.referrerPolicy = 'no-referrer';
-                img.src = url;
+                const t = setTimeout(() => finish(false), timeout || 8000);
+                img.onload = () => { clearTimeout(t); finish(img.naturalWidth > 0 && img.naturalHeight > 0); };
+                img.onerror = () => { clearTimeout(t); finish(false); };
+                img.referrerPolicy = 'no-referrer'; img.src = url;
             });
         }
-
         function getImageRatio(url) {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => resolve(img.naturalHeight ? img.naturalWidth / img.naturalHeight : null);
                 img.onerror = () => resolve(null);
-                img.referrerPolicy = 'no-referrer';
-                img.src = url;
+                img.referrerPolicy = 'no-referrer'; img.src = url;
             });
         }
-
         async function renderPdfFirstPage(pdfUrl, maxWidth) {
             const lib = window.pdfjsLib;
             if (!lib) throw new Error('PDF.js non chargé');
@@ -878,16 +894,8 @@
                 return { data: canvas.toDataURL('image/jpeg', 0.75), ratio: canvas.width / canvas.height };
             } finally { try { pdf.destroy(); } catch {} }
         }
-
-        function clampPdfRatio(r) {
-            if (!r || !isFinite(r) || r <= 0) return null;
-            return Math.max(PDF_RATIO_MIN, Math.min(PDF_RATIO_MAX, r));
-        }
-
-        function clampRatio(r) {
-            if (!r || !isFinite(r)) return null;
-            return Math.max(CUSTOM_RATIO_MIN, Math.min(CUSTOM_RATIO_MAX, r));
-        }
+        function clampPdfRatio(r) { if (!r || !isFinite(r) || r <= 0) return null; return Math.max(PDF_RATIO_MIN, Math.min(PDF_RATIO_MAX, r)); }
+        function clampRatio(r) { if (!r || !isFinite(r)) return null; return Math.max(CUSTOM_RATIO_MIN, Math.min(CUSTOM_RATIO_MAX, r)); }
 
         async function generatePdfCover(book) {
             if (book.kind === 'drive' && book.fileId) {
@@ -897,93 +905,66 @@
                     return { cover_url: url, cover_data: null, cover_ratio: clampPdfRatio(rawRatio), cover_source: 'pdf' };
                 }
             }
-            const pdfUrl = (book.kind === 'drive' && book.fileId)
-                ? 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(book.fileId)
-                : book.direct_url;
+            const pdfUrl = (book.kind === 'drive' && book.fileId) ? 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(book.fileId) : book.direct_url;
             if (pdfUrl) {
                 try {
                     const result = await withTimeout(renderPdfFirstPage(pdfUrl, COVER_MAX_WIDTH), 15000, 'Rendu PDF trop long');
-                    if (result && result.data) {
-                        return { cover_data: result.data, cover_url: null, cover_ratio: clampPdfRatio(result.ratio), cover_source: 'pdf' };
-                    }
-                } catch (err) { console.warn('Aperçu PDF impossible :', err && err.message); }
+                    if (result && result.data) return { cover_data: result.data, cover_url: null, cover_ratio: clampPdfRatio(result.ratio), cover_source: 'pdf' };
+                } catch (err) { console.warn('Aperçu PDF :', err && err.message); }
             }
             return null;
+        }
+
+        async function uploadCoverDataUrl(dataUrl) {
+            const blob = await (await fetch(dataUrl)).blob();
+            const ext = blob.type.includes('png') ? 'png' : 'jpg';
+            const path = `${currentUserId}/${uid()}.${ext}`;
+            const { error } = await sb.storage.from('covers').upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
+            if (error) throw error;
+            const { data } = sb.storage.from('covers').getPublicUrl(path);
+            return { url: data.publicUrl, path };
         }
 
         async function persistCover(id, patch) {
             const book = booksCache.find(b => b.id === id);
             if (!book) return;
-
-            let cover_url  = patch.cover_url ?? book.cover_url ?? null;
+            let cover_url = patch.cover_url ?? book.cover_url ?? null;
             let cover_path = null;
-
             if (patch.cover_data) {
-                try {
-                    const up = await uploadCoverDataUrl(patch.cover_data);
-                    cover_url  = up.url;
-                    cover_path = up.path;
-                    coverCache.set(id, cover_url);
-                } catch (e) {
-                    console.warn('Upload couverture échoué :', e.message);
-                    coverCache.set(id, patch.cover_data);
-                    scheduleRender();
-                    return;
-                }
+                try { const up = await uploadCoverDataUrl(patch.cover_data); cover_url = up.url; cover_path = up.path; coverCache.set(id, cover_url); }
+                catch (e) { console.warn('Upload cover:', e.message); coverCache.set(id, patch.cover_data); scheduleRender(); return; }
             }
-
-            const ratio  = patch.cover_ratio  ?? book.cover_ratio;
+            const ratio = patch.cover_ratio ?? book.cover_ratio;
             const source = patch.cover_source ?? book.cover_source;
-
             const update = { cover_url, cover_ratio: ratio, cover_source: source };
             if (cover_path) update.cover_path = cover_path;
-
             const { error } = await sb.from('books').update(update).eq('id', id);
-            if (error) { console.warn('persistCover:', error.message); return; }
-
+            if (error) { console.warn(error); return; }
             Object.assign(book, { cover_url, cover_ratio: ratio, cover_source: source });
             scheduleRender();
         }
 
         async function ensureCover(book) {
-            if (book.auto_pdf_cover !== true) return;
-            if (book.cover_data || book.cover_url) return;
-            if (coverCache.has(book.id) || pendingCovers.has(book.id) || attemptedCovers.has(book.id)) return;
-            if (!book.direct_url) return;
-
-            pendingCovers.add(book.id);
-            scheduleRender();
+            if (book.auto_pdf_cover !== true || book.cover_data || book.cover_url) return;
+            if (coverCache.has(book.id) || pendingCovers.has(book.id) || attemptedCovers.has(book.id) || !book.direct_url) return;
+            pendingCovers.add(book.id); scheduleRender();
             let result = null;
-            try { result = await generatePdfCover(book); } catch (err) { console.warn(err); }
+            try { result = await generatePdfCover(book); } catch (e) { console.warn(e); }
             pendingCovers.delete(book.id);
-
-            if (result && result.cover_data) {
-                coverCache.set(book.id, result.cover_data);
-                persistCover(book.id, { cover_data: result.cover_data, cover_url: null, cover_ratio: result.cover_ratio || null, cover_source: 'pdf' });
-            } else if (result && result.cover_url) {
-                coverCache.set(book.id, result.cover_url);
-                persistCover(book.id, { cover_url: result.cover_url, cover_data: null, cover_ratio: result.cover_ratio || null, cover_source: 'pdf' });
-            } else {
-                attemptedCovers.add(book.id);
-            }
+            if (result?.cover_data) { coverCache.set(book.id, result.cover_data); persistCover(book.id, { cover_data: result.cover_data, cover_url: null, cover_ratio: result.cover_ratio || null, cover_source: 'pdf' }); }
+            else if (result?.cover_url) { coverCache.set(book.id, result.cover_url); persistCover(book.id, { cover_url: result.cover_url, cover_data: null, cover_ratio: result.cover_ratio || null, cover_source: 'pdf' }); }
+            else attemptedCovers.add(book.id);
             scheduleRender();
         }
+        function coverSrcFor(book) { return book.cover_data || coverCache.get(book.id) || book.cover_url || book.thumb_url || PLACEHOLDER_COVER; }
 
-        function coverSrcFor(book) {
-            return book.cover_data || coverCache.get(book.id) || book.cover_url || book.thumb_url || PLACEHOLDER_COVER;
-        }
-
-        /* =========================================================
-           COUVERTURE FORMULAIRE PRINCIPAL
-           ========================================================= */
-        let pendingCoverImage = null;
-        let pendingCoverUrl   = null;
-
+        // === COUVERTURE FORMULAIRE ===
+        let pendingCoverImage = null, pendingCoverUrl = null;
         function processCoverImage(file, maxWidth) {
             return new Promise((resolve, reject) => {
-                if (!file || !file.type.startsWith('image/')) return reject(new Error('Le fichier doit être une image.'));
+                if (!file || !file.type.startsWith('image/')) return reject(new Error('Fichier image requis.'));
                 const reader = new FileReader();
-                reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+                reader.onerror = () => reject(new Error('Lecture impossible.'));
                 reader.onload = () => {
                     const img = new Image();
                     img.onerror = () => reject(new Error('Image illisible.'));
@@ -1007,16 +988,12 @@
         }
 
         function updateCoverPreview() {
-            const wrap  = $('coverPreviewWrap');
-            const img   = $('coverPreview');
-            const label = $('coverPreviewLabel');
-            const urlHint = $('coverUrlHint');
-
+            const wrap = $('coverPreviewWrap'), img = $('coverPreview'), label = $('coverPreviewLabel'), urlHint = $('coverUrlHint');
             if (pendingCoverImage) {
                 img.src = pendingCoverImage.data;
                 label.textContent = '📁 Aperçu : fichier importé (prioritaire)';
                 label.className = 'text-xs font-semibold text-teal-400 truncate';
-                if (urlHint) urlHint.textContent = '(ignoré — un fichier est importé)';
+                if (urlHint) urlHint.textContent = '(ignoré)';
                 wrap.classList.remove('hidden'); wrap.classList.add('flex');
             } else if (pendingCoverUrl) {
                 img.src = pendingCoverUrl.url;
@@ -1026,190 +1003,135 @@
                 wrap.classList.remove('hidden'); wrap.classList.add('flex');
             } else {
                 img.removeAttribute('src');
-                label.textContent = 'Aperçu';
-                label.className = 'text-xs font-semibold text-slate-300 truncate';
                 if (urlHint) urlHint.textContent = '';
                 wrap.classList.add('hidden'); wrap.classList.remove('flex');
             }
         }
 
-        async function handleCoverChange(event) {
-            const file = event.target.files && event.target.files[0];
+        async function handleCoverChange(e) {
+            const file = e.target.files && e.target.files[0];
             if (!file) { pendingCoverImage = null; updateCoverPreview(); return; }
-            try {
-                const result = await processCoverImage(file, CUSTOM_MAX_WIDTH);
-                pendingCoverImage = result;
-                updateCoverPreview();
-            } catch (err) {
-                pendingCoverImage = null; updateCoverPreview(); event.target.value = '';
-                showToast(err.message || 'Image invalide.', 'error');
-            }
+            try { pendingCoverImage = await processCoverImage(file, CUSTOM_MAX_WIDTH); updateCoverPreview(); }
+            catch (err) { pendingCoverImage = null; updateCoverPreview(); e.target.value = ''; showToast(err.message, 'error'); }
         }
 
         async function handleCoverUrlChange(rawValue) {
             const raw = String(rawValue || '').trim();
             const errEl = $('coverUrlError');
-            if (!raw) { pendingCoverUrl = null; errEl.classList.add('hidden'); errEl.textContent = ''; updateCoverPreview(); return; }
-            let url;
-            try { url = new URL(raw); } catch { errEl.textContent = 'URL invalide.'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return; }
-            if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-                errEl.textContent = 'L\'URL doit commencer par http:// ou https://'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return;
-            }
-            const ok = await withTimeout(imageLoads(raw, 8000), 9000, 'timeout').catch(() => false);
-            if (!ok) { errEl.textContent = 'Impossible de charger l\'image depuis cette URL.'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return; }
+            if (!raw) { pendingCoverUrl = null; errEl.classList.add('hidden'); updateCoverPreview(); return; }
+            let url; try { url = new URL(raw); } catch { errEl.textContent = 'URL invalide.'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return; }
+            if (url.protocol !== 'https:' && url.protocol !== 'http:') { errEl.textContent = 'Protocole invalide.'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return; }
+            const ok = await withTimeout(imageLoads(raw, 8000), 9000).catch(() => false);
+            if (!ok) { errEl.textContent = 'Image inaccessible.'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return; }
             const ratio = clampRatio(await getImageRatio(raw)) || A4_RATIO_NUM;
             pendingCoverUrl = { url: raw, ratio };
-            errEl.classList.add('hidden'); errEl.textContent = '';
+            errEl.classList.add('hidden');
             updateCoverPreview();
         }
 
         function handleCoverClear() {
             pendingCoverImage = null; pendingCoverUrl = null;
             $('coverImage').value = ''; $('coverUrl').value = '';
-            const errEl = $('coverUrlError'); errEl.classList.add('hidden'); errEl.textContent = '';
+            $('coverUrlError').classList.add('hidden');
             updateCoverPreview();
         }
 
-        /* =========================================================
-           TÉLÉCHARGEMENT / FAVORIS / SUPPRESSION
-           ========================================================= */
+        // === DOWNLOAD / FAVORIS / DELETE ===
         function buildDownloadUrl(book) {
-            if (book.kind === 'drive' && book.fileId) {
-                return 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(book.fileId) + '&confirm=t';
-            }
+            if (book.kind === 'drive' && book.fileId) return 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(book.fileId) + '&confirm=t';
             return book.direct_url || '#';
         }
-
         function incrementDownloads(id) {
-            const book = booksCache.find(b => b.id === id);
-            if (book) { book.downloads = (book.downloads || 0) + 1; renderBooks(); }
-            sb.rpc('increment_downloads', { p_book_id: id }).then(({ error }) => { if (error) console.warn('downloads:', error.message); });
+            const b = booksCache.find(x => x.id === id);
+            if (b) { b.downloads = (b.downloads || 0) + 1; renderBooks(); }
+            sb.rpc('increment_downloads', { p_book_id: id }).then(({ error }) => { if (error) console.warn(error); });
         }
-
         function triggerDownload(book) {
             incrementDownloads(book.id);
             const url = buildDownloadUrl(book);
             const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = url;
+            iframe.style.display = 'none'; iframe.src = url;
             document.body.appendChild(iframe);
             setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 5000);
         }
-
         async function toggleFavorite(id) {
-            const book = booksCache.find(b => b.id === id);
-            if (!book) return;
-            const next = !book.favorite;
-            book.favorite = next;
+            const b = booksCache.find(x => x.id === id); if (!b) return;
+            const next = !b.favorite; b.favorite = next;
             next ? favoritesSet.add(id) : favoritesSet.delete(id);
-            favFlashId = id;
-            renderBooks();
+            favFlashId = id; renderBooks();
             showToast(next ? 'Ajouté aux favoris ❤️' : 'Retiré des favoris');
             const { error } = next
                 ? await sb.from('favorites').insert({ user_id: currentUserId, book_id: id })
                 : await sb.from('favorites').delete().eq('user_id', currentUserId).eq('book_id', id);
-            if (error) {
-                book.favorite = !next;
-                next ? favoritesSet.delete(id) : favoritesSet.add(id);
-                renderBooks();
-                showToast('Action impossible.', 'error');
-            }
+            if (error) { b.favorite = !next; next ? favoritesSet.delete(id) : favoritesSet.add(id); renderBooks(); showToast('Action impossible.', 'error'); }
         }
-
         async function deleteBook(id, title) {
             if (!window.confirm('Supprimer « ' + (title || 'ce livre') + ' » ?')) return;
             const { error } = await sb.from('books').delete().eq('id', id);
-            if (error) { showToast('Suppression impossible (droits insuffisants).', 'error'); return; }
+            if (error) { showToast('Suppression impossible.', 'error'); return; }
             booksCache = booksCache.filter(b => b.id !== id);
             coverCache.delete(id); pendingCovers.delete(id); attemptedCovers.delete(id);
-            ratioFixAttempted.delete(id); commentsCache.delete(id);
-            renderBooks();
+            ratioFixAttempted.delete(id); commentsCache.delete(id); bookTagsMap.delete(id);
+            renderBooks(); scheduleHomeRefresh();
             showToast('Livre supprimé.');
         }
 
-        /* =========================================================
-           EXPORT / IMPORT
-           ========================================================= */
+        // === EXPORT / IMPORT ===
         function exportLibrary() {
             if (!booksCache.length) { showToast('Aucun livre à exporter.', 'error'); return; }
-            const clean = booksCache.map(b => {
-                const { _canDelete, comments_count, user_id, ...rest } = b;
-                return rest;
-            });
+            const clean = booksCache.map(b => { const { _canDelete, comments_count, user_id, ...rest } = b; return rest; });
             const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(clean, null, 2));
-            const a = document.createElement('a');
-            a.href = dataStr;
+            const a = document.createElement('a'); a.href = dataStr;
             a.download = 'bibliotheque_solidaire_backup_' + new Date().toISOString().slice(0, 10) + '.json';
             document.body.appendChild(a); a.click(); a.remove();
-            showToast('Bibliothèque exportée avec succès !');
+            showToast('Bibliothèque exportée !');
         }
-
         function importLibrary(event) {
-            const file = event.target.files && event.target.files[0];
-            if (!file) return;
+            const file = event.target.files && event.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (!Array.isArray(imported)) throw new Error('Format invalide');
-                    const replaceAll = window.confirm('OK = Remplacer toute la bibliothèque\nAnnuler = Fusionner avec l\'existante');
+                    const replaceAll = window.confirm('OK = Remplacer toute la bibliothèque\nAnnuler = Fusionner');
                     if (replaceAll) {
-                        if (!window.confirm('Confirmer la suppression définitive de tous vos livres ?')) return;
-                        const { error } = await sb.from('books').delete().eq('user_id', currentUserId);
-                        if (error) throw error;
+                        if (!window.confirm('Confirmer la suppression ?')) return;
+                        await sb.from('books').delete().eq('user_id', currentUserId);
                         booksCache = [];
                     }
                     const existingUrls = new Set(booksCache.map(b => b.direct_url));
-                    const rows = imported
-                        .filter(b => b && b.direct_url && !existingUrls.has(b.direct_url))
-                        .map(b => ({
-                            user_id: currentUserId,
-                            title: String(b.title || 'Sans titre').slice(0, 150),
-                            author: String(b.author || 'Inconnu').slice(0, 100),
-                            category: String(b.category || 'Autre').slice(0, 80),
-                            description: String(b.description || '').slice(0, 1000),
-                            kind: b.kind === 'drive' ? 'drive' : 'external',
-                            file_id: b.fileId || null,
-                            direct_url: b.direct_url,
-                            preview_url: b.preview_url || null,
-                            thumb_url: b.thumb_url || null,
-                            cover_url: b.cover_url || null,
-                            cover_ratio: b.cover_ratio || null,
-                            cover_source: b.cover_source || null,
-                            auto_pdf_cover: !!b.auto_pdf_cover,
-                            downloads: b.downloads || 0
-                        }));
-                    if (rows.length) {
-                        const { error } = await sb.from('books').insert(rows);
-                        if (error) throw error;
-                    }
+                    const rows = imported.filter(b => b && b.direct_url && !existingUrls.has(b.direct_url)).map(b => ({
+                        user_id: currentUserId,
+                        title: String(b.title || 'Sans titre').slice(0, 150),
+                        author: String(b.author || 'Inconnu').slice(0, 100),
+                        category: String(b.category || 'Autre').slice(0, 80),
+                        description: String(b.description || '').slice(0, 1000),
+                        kind: b.kind === 'drive' ? 'drive' : 'external',
+                        file_id: b.fileId || null, direct_url: b.direct_url,
+                        preview_url: b.preview_url || null, thumb_url: b.thumb_url || null,
+                        cover_url: b.cover_url || null, cover_ratio: b.cover_ratio || null,
+                        cover_source: b.cover_source || null,
+                        auto_pdf_cover: !!b.auto_pdf_cover, downloads: b.downloads || 0
+                    }));
+                    if (rows.length) { const { error } = await sb.from('books').insert(rows); if (error) throw error; }
                     await reloadFromScratch();
                     showToast(`${rows.length} livre(s) importé(s) !`);
-                } catch (err) {
-                    console.error(err);
-                    showToast('Fichier de sauvegarde invalide.', 'error');
-                } finally { event.target.value = ''; }
+                } catch (err) { console.error(err); showToast('Fichier invalide.', 'error'); }
+                finally { event.target.value = ''; }
             };
             reader.readAsText(file);
         }
 
-        /* =========================================================
-           THÈME
-           ========================================================= */
+        // === THÈME ===
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (savedTheme === 'dark' || (!savedTheme && prefersDark)) document.documentElement.classList.add('dark');
             else document.documentElement.classList.remove('dark');
         }
-        function toggleTheme() {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        }
+        function toggleTheme() { const isDark = document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); }
 
-        /* =========================================================
-           VUES
-           ========================================================= */
+        // === VUES ===
         function updateViewUI() {
             const grid = $('booksGrid');
             grid.classList.remove('view-grid', 'view-list', 'view-compact');
@@ -1232,19 +1154,14 @@
                 const el = $('view' + v.charAt(0).toUpperCase() + v.slice(1));
                 if (el) el.classList.add('hidden');
                 const navBtn = $('navBtn' + v.charAt(0).toUpperCase() + v.slice(1));
-                if (navBtn) {
-                    navBtn.classList.remove('text-teal-400');
-                    navBtn.classList.add('text-slate-400', 'hover:text-white');
-                }
+                if (navBtn) { navBtn.classList.remove('text-teal-400'); navBtn.classList.add('text-slate-400', 'hover:text-white'); }
             });
             const activeView = $('view' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
             if (activeView) activeView.classList.remove('hidden');
             const activeNav = $('navBtn' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
-            if (activeNav) {
-                activeNav.classList.remove('text-slate-400', 'hover:text-white');
-                activeNav.classList.add('text-teal-400');
-            }
+            if (activeNav) { activeNav.classList.remove('text-slate-400', 'hover:text-white'); activeNav.classList.add('text-teal-400'); }
             if (tabName === 'profile') updateProfileStats();
+            if (tabName === 'accueil') scheduleHomeRefresh();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -1256,7 +1173,6 @@
             $('statFavoritesCount').textContent = booksCache.filter(b => b.favorite).length;
             const initials = savedName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
             $('profileAvatarInitials').textContent = initials || 'MS';
-
             const statusEl = $('profileAccountStatus');
             if (isAnonymousUser) {
                 statusEl.innerHTML = '<span class="pulse-dot"></span><span>Compte anonyme</span>';
@@ -1269,15 +1185,9 @@
             }
         }
 
-        /* =========================================================
-           RENDU
-           ========================================================= */
+        // === RENDU ===
         let renderQueued = false;
-        function scheduleRender() {
-            if (renderQueued) return;
-            renderQueued = true;
-            requestAnimationFrame(() => { renderQueued = false; renderBooks(); });
-        }
+        function scheduleRender() { if (renderQueued) return; renderQueued = true; requestAnimationFrame(() => { renderQueued = false; renderBooks(); }); }
 
         function renderSkeletons(count) {
             const grid = $('booksGrid');
@@ -1286,15 +1196,7 @@
             for (let i = 0; i < (count || 6); i++) {
                 const card = document.createElement('div');
                 card.className = 'skeleton-card';
-                card.innerHTML = `
-                    <div class="skeleton skeleton-cover"></div>
-                    <div style="padding: 10px 0;">
-                        <div class="skeleton skeleton-line w-3/4"></div>
-                        <div class="skeleton skeleton-line w-1/2"></div>
-                        <div class="skeleton skeleton-line w-2/3"></div>
-                        <div class="skeleton skeleton-line h-8" style="margin-top: 12px;"></div>
-                    </div>
-                `;
+                card.innerHTML = `<div class="skeleton skeleton-cover"></div><div style="padding: 10px 0;"><div class="skeleton skeleton-line w-3/4"></div><div class="skeleton skeleton-line w-1/2"></div><div class="skeleton skeleton-line w-2/3"></div><div class="skeleton skeleton-line h-8" style="margin-top: 12px;"></div></div>`;
                 frag.append(card);
             }
             grid.append(frag);
@@ -1306,7 +1208,6 @@
 
             const cover = document.createElement('div');
             cover.className = 'book-cover-wrapper relative overflow-hidden bg-slate-100 dark:bg-[#0b1120] flex items-center justify-center';
-
             const effectiveRatio = (book.cover_ratio && isFinite(book.cover_ratio) && book.cover_ratio > 0) ? book.cover_ratio : A4_RATIO_NUM;
             cover.style.setProperty('--cover-ratio', String(effectiveRatio));
 
@@ -1314,10 +1215,7 @@
             const isPdfCover = book.cover_source === 'pdf' && !!(book.cover_data || book.cover_url);
 
             const img = document.createElement('img');
-            img.src = src;
-            img.alt = 'Couverture';
-            img.loading = 'lazy';
-            img.decoding = 'async';
+            img.src = src; img.alt = 'Couverture'; img.loading = 'lazy'; img.decoding = 'async';
             img.className = 'absolute inset-0 w-full h-full ' + (isPdfCover ? 'object-contain pdf-cover-img' : 'object-cover');
             img.addEventListener('error', () => { if (img.src !== PLACEHOLDER_COVER) img.src = PLACEHOLDER_COVER; }, { once: true });
             cover.append(img);
@@ -1325,13 +1223,8 @@
             if (isPdfCover && !book.cover_ratio && book.cover_data && !ratioFixAttempted.has(book.id)) {
                 ratioFixAttempted.add(book.id);
                 const probe = new Image();
-                probe.onload = () => {
-                    const r = probe.naturalWidth / probe.naturalHeight;
-                    const clamped = clampPdfRatio(r);
-                    if (clamped) { persistCover(book.id, { cover_ratio: clamped }); scheduleRender(); }
-                };
-                probe.onerror = () => {};
-                probe.src = book.cover_data;
+                probe.onload = () => { const r = probe.naturalWidth / probe.naturalHeight; const c = clampPdfRatio(r); if (c) { persistCover(book.id, { cover_ratio: c }); scheduleRender(); } };
+                probe.onerror = () => {}; probe.src = book.cover_data;
             }
 
             if (pendingCovers.has(book.id) && src === PLACEHOLDER_COVER) {
@@ -1358,8 +1251,6 @@
                 const editBtn = document.createElement('button');
                 editBtn.type = 'button';
                 editBtn.className = 'book-edit-btn absolute top-2 right-16 z-10 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 text-slate-900 dark:text-white rounded w-6 h-6 flex items-center justify-center transition backdrop-blur-md shadow';
-                editBtn.setAttribute('aria-label', 'Modifier');
-                editBtn.title = 'Modifier';
                 editBtn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
                 editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(book.id); });
                 cover.append(editBtn);
@@ -1367,7 +1258,6 @@
                 const del = document.createElement('button');
                 del.type = 'button';
                 del.className = 'book-delete-btn text-slate-300 hover:text-white transition shadow';
-                del.setAttribute('aria-label', 'Supprimer');
                 del.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
                 del.addEventListener('click', (e) => { e.stopPropagation(); deleteBook(book.id, book.title); });
                 cover.append(del);
@@ -1375,8 +1265,8 @@
 
             const content = document.createElement('div');
             content.className = 'book-content flex flex-col justify-between p-2.5 flex-1';
-
             const textWrapper = document.createElement('div');
+
             const h3 = document.createElement('h3');
             h3.className = 'text-xs font-bold text-slate-900 dark:text-white break-words mb-0.5 line-clamp-1';
             h3.textContent = book.title || 'Sans titre';
@@ -1400,6 +1290,29 @@
             pDesc.textContent = book.description || 'Pas de description.';
             textWrapper.append(pDesc);
 
+            // Tags
+            if (Array.isArray(book.tags) && book.tags.length > 0) {
+                const tagsWrap = document.createElement('div');
+                tagsWrap.className = 'flex flex-wrap gap-1 mb-1.5';
+                book.tags.slice(0, 4).forEach(tagName => {
+                    const tag = document.createElement('button');
+                    tag.type = 'button';
+                    tag.className = 'tag-badge';
+                    tag.textContent = '#' + tagName;
+                    tag.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        currentTagFilter = tagName;
+                        currentSearchQuery = '';
+                        displayedCount = UI_PAGE_SIZE;
+                        switchTab('bibliotheque');
+                        renderBooks();
+                        showToast('Filtré par #' + tagName);
+                    });
+                    tagsWrap.append(tag);
+                });
+                textWrapper.append(tagsWrap);
+            }
+
             const stats = document.createElement('div');
             stats.className = 'text-[9px] text-slate-400 mb-1.5 flex items-center gap-1';
             stats.innerHTML = `<svg class="w-3 h-3 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>${book.downloads || 0} téléchargement(s)</span>`;
@@ -1411,32 +1324,22 @@
             actions.className = 'book-actions flex gap-1 mt-auto pt-1.5 border-t border-slate-100 dark:border-slate-800';
 
             const open = document.createElement('a');
-            open.href = book.direct_url || '#';
-            open.target = '_blank';
-            open.rel = 'noopener noreferrer';
+            open.href = book.direct_url || '#'; open.target = '_blank'; open.rel = 'noopener noreferrer';
             open.className = 'flex-1 bg-slate-100 dark:bg-[#0b1120] hover:bg-teal-600 text-slate-700 dark:text-slate-200 hover:text-white text-[10px] font-semibold py-1 px-2 rounded-none transition flex items-center justify-center gap-1 border border-slate-200/50 dark:border-slate-800';
             open.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> <span>Ouvrir</span>';
-            open.addEventListener('click', () => { incrementDownloads(book.id); });
+            open.addEventListener('click', () => incrementDownloads(book.id));
             actions.append(open);
 
             const dl = document.createElement('button');
             dl.type = 'button';
             dl.className = 'bg-slate-100 dark:bg-[#0b1120] hover:bg-teal-600 text-slate-700 dark:text-slate-200 hover:text-white text-[10px] font-semibold py-1 px-2.5 rounded-none transition flex items-center justify-center border border-slate-200/50 dark:border-slate-800';
-            dl.title = 'Télécharger';
             dl.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>';
             dl.addEventListener('click', () => triggerDownload(book));
             actions.append(dl);
 
             content.append(actions);
-            card.append(cover);
-            card.append(content);
-
-            card.addEventListener('dblclick', (e) => {
-                if (e.target.closest('button, a, input, select, textarea')) return;
-                e.preventDefault();
-                toggleFavorite(book.id);
-            });
-
+            card.append(cover, content);
+            card.addEventListener('dblclick', (e) => { if (e.target.closest('button, a, input, select, textarea')) return; e.preventDefault(); toggleFavorite(book.id); });
             if (favFlashId === book.id) { card.classList.add('fav-pop'); favFlashId = null; }
             return card;
         }
@@ -1455,6 +1358,15 @@
                 btn.addEventListener('click', () => { currentCategoryFilter = cat; displayedCount = UI_PAGE_SIZE; renderBooks(); });
                 container.append(btn);
             }
+            // Tag filter badge (si actif)
+            if (currentTagFilter) {
+                const tb = document.createElement('button');
+                tb.type = 'button';
+                tb.className = 'whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold bg-teal-600 text-white shadow-md flex items-center gap-1.5';
+                tb.innerHTML = `#${escapeHtml(currentTagFilter)} <span class="opacity-80">✕</span>`;
+                tb.addEventListener('click', () => { currentTagFilter = null; displayedCount = UI_PAGE_SIZE; renderBooks(); });
+                container.append(tb);
+            }
         }
 
         function renderBooks() {
@@ -1462,13 +1374,7 @@
             const grid = $('booksGrid');
             const counter = $('bookCount');
             const sentinel = $('infiniteScrollSentinel');
-
-            if (!initialLoadDone) {
-                renderSkeletons(6);
-                counter.textContent = 'Chargement…';
-                sentinel.classList.add('hidden');
-                return;
-            }
+            if (!initialLoadDone) { renderSkeletons(6); counter.textContent = 'Chargement…'; sentinel.classList.add('hidden'); return; }
 
             renderCategoryChips(allBooks);
 
@@ -1478,11 +1384,13 @@
                 if (currentCategoryFilter === '❤️ Favoris') matchesCat = !!book.favorite;
                 else if (currentCategoryFilter !== 'TOUT') matchesCat = book.category === currentCategoryFilter;
                 const matchesRating = (book.rating || 0) >= currentMinRating;
+                const matchesTag = !currentTagFilter || (book.tags || []).includes(currentTagFilter);
                 const matchesQuery = !query ||
                     (book.title && book.title.toLowerCase().includes(query)) ||
                     (book.author && book.author.toLowerCase().includes(query)) ||
-                    (book.description && book.description.toLowerCase().includes(query));
-                return matchesCat && matchesRating && matchesQuery;
+                    (book.description && book.description.toLowerCase().includes(query)) ||
+                    (book.tags && book.tags.some(t => t.toLowerCase().includes(query)));
+                return matchesCat && matchesRating && matchesTag && matchesQuery;
             });
 
             filtered.sort((a, b) => {
@@ -1493,7 +1401,6 @@
             });
 
             filteredBooksCache = filtered;
-
             grid.textContent = '';
             counter.textContent = filtered.length ? filtered.length + (filtered.length > 1 ? ' ressources' : ' ressource') : '0 ressource';
 
@@ -1501,7 +1408,7 @@
                 sentinel.classList.add('hidden');
                 const p = document.createElement('p');
                 p.className = 'text-slate-400 italic col-span-full text-center py-12 text-sm';
-                p.textContent = currentCategoryFilter === '❤️ Favoris' ? 'Aucun favori pour le moment. Cliquez sur le cœur d\'un livre pour l\'ajouter !' : 'Aucun livre ne correspond à vos critères de recherche.';
+                p.textContent = currentCategoryFilter === '❤️ Favoris' ? 'Aucun favori pour le moment.' : 'Aucun livre ne correspond à vos critères.';
                 grid.append(p);
                 return;
             }
@@ -1511,11 +1418,8 @@
             for (const book of paginatedBooks) frag.append(createBookCard(book));
             grid.append(frag);
 
-            if (displayedCount < filtered.length || serverHasMore) {
-                sentinel.classList.remove('hidden');
-            } else {
-                sentinel.classList.add('hidden');
-            }
+            if (displayedCount < filtered.length || serverHasMore) sentinel.classList.remove('hidden');
+            else sentinel.classList.add('hidden');
 
             for (const book of paginatedBooks) ensureCover(book);
         }
@@ -1523,58 +1427,37 @@
         function initInfiniteScroll() {
             const sentinel = $('infiniteScrollSentinel');
             if (!sentinel) return;
-
             const observer = new IntersectionObserver(async (entries) => {
                 entries.forEach(async entry => {
-                    if (!entry.isIntersecting) return;
-                    if (serverIsLoading) return;
-                    if (displayedCount < filteredBooksCache.length) {
-                        displayedCount += UI_PAGE_SIZE;
-                        renderBooks();
-                        return;
-                    }
-                    if (serverHasMore) {
-                        await loadBooksPage(false);
-                        displayedCount += UI_PAGE_SIZE;
-                        renderBooks();
-                    }
+                    if (!entry.isIntersecting || serverIsLoading) return;
+                    if (displayedCount < filteredBooksCache.length) { displayedCount += UI_PAGE_SIZE; renderBooks(); return; }
+                    if (serverHasMore) { await loadBooksPage(false); displayedCount += UI_PAGE_SIZE; renderBooks(); }
                 });
             }, { rootMargin: '300px' });
-
             observer.observe(sentinel);
         }
 
-        /* =========================================================
-           MODAL AVIS
-           ========================================================= */
+        // === MODAL AVIS ===
         async function openReviewsModal(bookId) {
-            const book = booksCache.find(b => b.id === bookId);
-            if (!book) return;
+            const book = booksCache.find(b => b.id === bookId); if (!book) return;
             $('modalBookId').value = book.id;
             $('modalBookTitle').textContent = 'Avis : ' + book.title;
-            selectedRating = 5;
-            updateStarPickerUI();
+            selectedRating = 5; updateStarPickerUI();
             const list = $('modalCommentsList');
             list.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Chargement…</p>';
             $('reviewsModal').classList.remove('hidden');
             const comments = await loadComments(bookId);
             renderCommentsList(comments);
         }
-
-        function closeReviewsModal() {
-            $('reviewsModal').classList.add('hidden');
-            $('reviewForm').reset();
-        }
+        function closeReviewsModal() { $('reviewsModal').classList.add('hidden'); $('reviewForm').reset(); }
 
         function renderCommentsList(comments) {
-            const list = $('modalCommentsList');
-            list.textContent = '';
+            const list = $('modalCommentsList'); list.textContent = '';
             if (!comments || comments.length === 0) {
                 const p = document.createElement('p');
                 p.className = 'text-xs text-slate-400 italic text-center py-6';
-                p.textContent = 'Aucun avis pour le moment. Soyez le premier à en laisser un !';
-                list.append(p);
-                return;
+                p.textContent = 'Aucun avis pour le moment. Soyez le premier !';
+                list.append(p); return;
             }
             for (const c of comments) {
                 const div = document.createElement('div');
@@ -1590,20 +1473,15 @@
                 list.append(div);
             }
         }
-
         function updateStarPickerUI() {
             const stars = $('starPicker').querySelectorAll('span');
-            stars.forEach((star, idx) => {
-                if (idx < selectedRating) star.className = 'text-amber-400 transition-colors';
-                else star.className = 'text-slate-700 transition-colors';
-            });
+            stars.forEach((star, idx) => { star.className = idx < selectedRating ? 'text-amber-400 transition-colors' : 'text-slate-700 transition-colors'; });
         }
-
         async function handleReviewSubmit(e) {
             e.preventDefault();
             const bookId = $('modalBookId').value;
             const author = $('commentAuthor').value.trim();
-            const text   = $('commentText').value.trim();
+            const text = $('commentText').value.trim();
             if (!author || !text) { showToast('Veuillez remplir tous les champs.', 'error'); return; }
             const { error } = await sb.from('comments').insert({ book_id: bookId, user_id: currentUserId, author, text, rating: selectedRating });
             if (error) { showToast('Publication impossible.', 'error'); return; }
@@ -1611,216 +1489,148 @@
             const comments = await loadComments(bookId);
             renderCommentsList(comments);
             const b = booksCache.find(x => x.id === bookId);
-            if (b) { b.comments_count = comments.length; }
+            if (b) b.comments_count = comments.length;
             renderBooks();
-            showToast('Avis publié avec succès !');
+            showToast('Avis publié !');
         }
 
-        /* =========================================================
-           MODAL ÉDITION
-           ========================================================= */
+        // === MODAL ÉDITION ===
         function openEditModal(bookId) {
-            const book = booksCache.find(b => b.id === bookId);
-            if (!book) return;
-            $('editBookId').value    = book.id;
-            $('editTitle').value     = book.title || '';
-            $('editAuthor').value    = book.author || '';
-            $('editCategory').value  = book.category || '';
+            const book = booksCache.find(b => b.id === bookId); if (!book) return;
+            $('editBookId').value = book.id;
+            $('editTitle').value = book.title || '';
+            $('editAuthor').value = book.author || '';
+            $('editCategory').value = book.category || '';
+            $('editTags').value = (book.tags || []).join(', ');
             $('editDescription').value = book.description || '';
-            $('editCoverUrl').value  = (book.cover_source === 'url' ? (book.cover_url || '') : '');
+            $('editCoverUrl').value = (book.cover_source === 'url' ? (book.cover_url || '') : '');
             $('editModal').classList.remove('hidden');
         }
-
-        function closeEditModal() {
-            $('editModal').classList.add('hidden');
-            $('editForm').reset();
-        }
+        function closeEditModal() { $('editModal').classList.add('hidden'); $('editForm').reset(); }
 
         async function handleEditSubmit(e) {
             e.preventDefault();
             const bookId = $('editBookId').value;
-            const book = booksCache.find(b => b.id === bookId);
-            if (!book) return;
-
+            const book = booksCache.find(b => b.id === bookId); if (!book) return;
             const newTitle = $('editTitle').value.trim();
             const newAuthor = $('editAuthor').value.trim();
             const newCategory = $('editCategory').value.trim();
             const newDescription = $('editDescription').value.trim();
+            const newTagsStr = $('editTags').value.trim();
             const newCoverUrl = $('editCoverUrl').value.trim();
+            if (!newTitle || !newAuthor || !newCategory) { showToast('Titre, auteur et catégorie requis.', 'error'); return; }
 
-            if (!newTitle || !newAuthor || !newCategory) {
-                showToast('Titre, auteur et catégorie sont obligatoires.', 'error');
-                return;
-            }
-
-            let coverUrlToSave = book.cover_url;
-            let coverSourceToSave = book.cover_source;
-            let coverRatioToSave = book.cover_ratio;
-
+            let coverUrlToSave = book.cover_url, coverSourceToSave = book.cover_source, coverRatioToSave = book.cover_ratio;
             if (newCoverUrl && newCoverUrl !== book.cover_url) {
-                let u;
-                try { u = new URL(newCoverUrl); } catch {
-                    showToast('URL de couverture invalide.', 'error');
-                    return;
-                }
-                if (u.protocol !== 'https:' && u.protocol !== 'http:') {
-                    showToast('L\'URL doit commencer par http(s)://', 'error');
-                    return;
-                }
-                coverUrlToSave = u.href;
-                coverSourceToSave = 'url';
+                let u; try { u = new URL(newCoverUrl); } catch { showToast('URL invalide.', 'error'); return; }
+                if (u.protocol !== 'https:' && u.protocol !== 'http:') { showToast('Protocole invalide.', 'error'); return; }
+                coverUrlToSave = u.href; coverSourceToSave = 'url';
                 coverRatioToSave = clampRatio(await getImageRatio(newCoverUrl)) || A4_RATIO_NUM;
-            } else if (!newCoverUrl && book.cover_source === 'url') {
-                coverUrlToSave = null;
-                coverSourceToSave = null;
-                coverRatioToSave = null;
-            }
+            } else if (!newCoverUrl && book.cover_source === 'url') { coverUrlToSave = null; coverSourceToSave = null; coverRatioToSave = null; }
 
-            const update = {
-                title: newTitle,
-                author: newAuthor,
-                category: newCategory,
-                description: newDescription,
-                cover_url: coverUrlToSave,
-                cover_source: coverSourceToSave,
-                cover_ratio: coverRatioToSave
-            };
-
+            const update = { title: newTitle, author: newAuthor, category: newCategory, description: newDescription, cover_url: coverUrlToSave, cover_source: coverSourceToSave, cover_ratio: coverRatioToSave };
             const { error } = await sb.from('books').update(update).eq('id', bookId);
-            if (error) {
-                console.error(error);
-                showToast('Modification impossible : ' + error.message, 'error');
-                return;
-            }
-
-            Object.assign(book, {
-                title: newTitle,
-                author: newAuthor,
-                category: newCategory,
-                description: newDescription,
-                cover_url: coverUrlToSave,
-                cover_source: coverSourceToSave,
-                cover_ratio: coverRatioToSave
-            });
+            if (error) { showToast('Modification impossible.', 'error'); return; }
+            Object.assign(book, update);
             coverCache.delete(bookId);
 
+            // Mettre à jour les tags
+            const newTags = parseTags(newTagsStr);
+            await updateBookTags(bookId, newTags);
+            book.tags = newTags;
+
             closeEditModal();
-            renderBooks();
-            showToast('Livre modifié avec succès !');
+            renderBooks(); scheduleHomeRefresh();
+            showToast('Livre modifié !');
         }
 
-        /* =========================================================
-           MODAL LOGIN (conversion anonyme → permanent)
-           ========================================================= */
+        // === TAGS ===
+        function parseTags(str) {
+            return [...new Set(String(str || '').split(',').map(t => t.trim().toLowerCase()).filter(t => t.length >= 2 && t.length <= 30))].slice(0, 5);
+        }
+
+        async function upsertTags(tagNames) {
+            if (tagNames.length === 0) return [];
+            // Chercher les tags existants
+            const { data: existing } = await sb.from('tags').select('*').in('name', tagNames);
+            const existingMap = new Map((existing || []).map(t => [t.name, t]));
+            const toCreate = tagNames.filter(n => !existingMap.has(n));
+            if (toCreate.length > 0) {
+                const { data: created, error } = await sb.from('tags').insert(toCreate.map(n => ({ name: n }))).select();
+                if (error) { console.warn(error); } else { (created || []).forEach(t => existingMap.set(t.name, t)); }
+            }
+            return tagNames.map(n => existingMap.get(n)).filter(Boolean);
+        }
+
+        async function updateBookTags(bookId, tagNames) {
+            // Supprimer les anciens liens
+            await sb.from('book_tags').delete().eq('book_id', bookId);
+            if (tagNames.length === 0) { bookTagsMap.set(bookId, []); return; }
+            const tags = await upsertTags(tagNames);
+            if (tags.length === 0) return;
+            const links = tags.map(t => ({ book_id: bookId, tag_id: t.id }));
+            await sb.from('book_tags').insert(links);
+            tags.forEach(t => tagsCache.set(t.id, t));
+            bookTagsMap.set(bookId, tags.map(t => t.name));
+        }
+
+        // === MODAL LOGIN ===
         function openLoginModal() {
             $('loginStep1').classList.remove('hidden');
             $('loginStep2').classList.add('hidden');
             $('loginEmail').value = '';
             $('loginModal').classList.remove('hidden');
         }
+        function closeLoginModal() { $('loginModal').classList.add('hidden'); }
 
-        function closeLoginModal() {
-            $('loginModal').classList.add('hidden');
-        }
-
-        /**
-         * Gère la conversion anonyme → permanent.
-         * Cas 1 : email libre → updateUser() attache l'email au compte anonyme (tout conservé).
-         * Cas 2 : email déjà utilisé → propose de se connecter à l'autre compte via magic link.
-         */
         async function handleLoginSubmit(e) {
             e.preventDefault();
-            const email = $('loginEmail').value.trim();
-            if (!email) return;
-
-            const btn = $('loginSubmitBtn');
-            btn.disabled = true;
-            btn.textContent = 'Envoi en cours…';
-
-            // Tentative de liaison de l'email au compte anonyme actuel
+            const email = $('loginEmail').value.trim(); if (!email) return;
+            const btn = $('loginSubmitBtn'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
             const { error } = await sb.auth.updateUser({ email });
-
-            btn.disabled = false;
-            btn.textContent = 'Envoyer le lien magique';
-
+            btn.disabled = false; btn.textContent = 'Envoyer le lien magique';
             if (error) {
                 const msg = (error.message || '').toLowerCase();
-                const isAlreadyUsed = msg.includes('already') || error.status === 422;
-
-                if (isAlreadyUsed) {
-                    const wantsToSignIn = window.confirm(
-                        "Cet email est déjà associé à un compte existant sur BiblioSolidaire.\n\n" +
-                        "OK = Se connecter à ce compte existant (⚠️ vos livres et favoris actuels du compte anonyme seront perdus)\n" +
-                        "Annuler = Utiliser une autre adresse email"
-                    );
+                if (msg.includes('already') || error.status === 422) {
+                    const wantsToSignIn = window.confirm("Cet email est déjà associé à un compte existant.\n\nOK = Se connecter à ce compte\nAnnuler = Utiliser une autre adresse");
                     if (!wantsToSignIn) return;
-
-                    // Déconnexion du compte anonyme
                     await sb.auth.signOut();
                     localStorage.removeItem('profileName');
-
-                    // Envoi d'un lien magique pour se connecter au compte existant
-                    const { error: otpErr } = await sb.auth.signInWithOtp({
-                        email,
-                        options: { shouldCreateUser: false }
-                    });
-
-                    if (otpErr) {
-                        showToast('Erreur : ' + otpErr.message, 'error');
-                        return;
-                    }
-
+                    const { error: otpErr } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+                    if (otpErr) { showToast('Erreur : ' + otpErr.message, 'error'); return; }
                     $('loginSentTo').textContent = email;
                     $('loginStep1').classList.add('hidden');
                     $('loginStep2').classList.remove('hidden');
-                    showToast('Lien de connexion envoyé ! Vérifiez vos emails.');
+                    showToast('Lien de connexion envoyé !');
                     return;
                 }
-
-                console.error(error);
-                showToast('Erreur : ' + error.message, 'error');
-                return;
+                showToast('Erreur : ' + error.message, 'error'); return;
             }
-
             $('loginSentTo').textContent = email;
             $('loginStep1').classList.add('hidden');
             $('loginStep2').classList.remove('hidden');
         }
-
         async function handleSignOut() {
-            if (!window.confirm('Se déconnecter ? Vous pourrez vous reconnecter avec votre email.')) return;
+            if (!window.confirm('Se déconnecter ?')) return;
             await sb.auth.signOut();
             localStorage.removeItem('profileName');
             location.reload();
         }
 
-        /* =========================================================
-           FORMULAIRE PRINCIPAL
-           ========================================================= */
-        function showLinkError(message) {
+        // === FORMULAIRE PRINCIPAL ===
+        function showLinkError(msg) {
             const el = $('linkError');
-            if (message) { el.textContent = message; el.classList.remove('hidden'); }
+            if (msg) { el.textContent = msg; el.classList.remove('hidden'); }
             else { el.textContent = ''; el.classList.add('hidden'); }
         }
-
         function handleCategoryChange() {
-            const select = $('categorySelect');
-            const customInput = $('categoryCustom');
-            if (select.value === 'Autre...') {
-                customInput.classList.remove('hidden');
-                customInput.required = true;
-                customInput.focus();
-            } else {
-                customInput.classList.add('hidden');
-                customInput.required = false;
-                customInput.value = '';
-            }
+            const s = $('categorySelect'), c = $('categoryCustom');
+            if (s.value === 'Autre...') { c.classList.remove('hidden'); c.required = true; c.focus(); }
+            else { c.classList.add('hidden'); c.required = false; c.value = ''; }
         }
-
         function getSelectedCategory() {
-            const select = $('categorySelect');
-            const customInput = $('categoryCustom');
-            return select.value === 'Autre...' ? customInput.value.trim() : select.value;
+            const s = $('categorySelect'), c = $('categoryCustom');
+            return s.value === 'Autre...' ? c.value.trim() : s.value;
         }
 
         async function handleSubmit(event) {
@@ -1828,6 +1638,7 @@
             const title = $('title').value.trim();
             const author = $('author').value.trim();
             const category = getSelectedCategory();
+            const tagsStr = $('tagsInput').value.trim();
             const desc = $('description').value.trim();
             const link = $('link').value.trim();
 
@@ -1842,33 +1653,18 @@
             const autoPdfCover = $('autoPdfCover').checked;
             let coverUrlFinal = null, coverRatioFinal = null, coverDataFinal = null, coverSourceFinal = null;
 
-            if (pendingCoverImage) {
-                coverDataFinal = pendingCoverImage.data;
-                coverRatioFinal = pendingCoverImage.ratio;
-                coverSourceFinal = 'custom';
-            } else if (coverUrlRaw) {
-                let u;
-                try { u = new URL(coverUrlRaw); } catch { showToast('URL de couverture invalide.', 'error'); $('coverUrl').focus(); return; }
-                if (u.protocol !== 'https:' && u.protocol !== 'http:') {
-                    showToast('L\'URL de couverture doit commencer par http:// ou https://', 'error'); $('coverUrl').focus(); return;
-                }
-                if (pendingCoverUrl && pendingCoverUrl.url === coverUrlRaw) coverRatioFinal = pendingCoverUrl.ratio;
-                else coverRatioFinal = clampRatio(await getImageRatio(coverUrlRaw)) || A4_RATIO_NUM;
-                coverUrlFinal = u.href;
-                coverSourceFinal = 'url';
+            if (pendingCoverImage) { coverDataFinal = pendingCoverImage.data; coverRatioFinal = pendingCoverImage.ratio; coverSourceFinal = 'custom'; }
+            else if (coverUrlRaw) {
+                let u; try { u = new URL(coverUrlRaw); } catch { showToast('URL couverture invalide.', 'error'); return; }
+                if (u.protocol !== 'https:' && u.protocol !== 'http:') { showToast('Protocole invalide.', 'error'); return; }
+                coverRatioFinal = (pendingCoverUrl && pendingCoverUrl.url === coverUrlRaw) ? pendingCoverUrl.ratio : (clampRatio(await getImageRatio(coverUrlRaw)) || A4_RATIO_NUM);
+                coverUrlFinal = u.href; coverSourceFinal = 'url';
             }
 
             let cover_url = coverUrlFinal, cover_path = null;
             if (coverDataFinal) {
-                try {
-                    const up = await uploadCoverDataUrl(coverDataFinal);
-                    cover_url  = up.url;
-                    cover_path = up.path;
-                } catch (err) {
-                    console.error(err);
-                    showToast('Upload de la couverture impossible.', 'error');
-                    return;
-                }
+                try { const up = await uploadCoverDataUrl(coverDataFinal); cover_url = up.url; cover_path = up.path; }
+                catch (err) { showToast('Upload couverture impossible.', 'error'); return; }
             }
 
             const insertRow = {
@@ -1881,26 +1677,34 @@
             if (cover_path) insertRow.cover_path = cover_path;
 
             const { data, error } = await sb.from('books').insert(insertRow).select('*, comments(count)').single();
-            if (error) { console.error(error); showToast('Publication impossible : ' + error.message, 'error'); return; }
+            if (error) { showToast('Publication impossible : ' + error.message, 'error'); return; }
 
-            booksCache.unshift(rowToBook(data));
+            const newBook = rowToBook(data);
 
+            // Tags
+            const tags = parseTags(tagsStr);
+            if (tags.length > 0) {
+                await updateBookTags(data.id, tags);
+                newBook.tags = tags;
+            } else {
+                bookTagsMap.set(data.id, []);
+            }
+
+            booksCache.unshift(newBook);
             $('bookForm').reset();
             $('categoryCustom').classList.add('hidden'); $('categoryCustom').required = false;
             $('autoPdfCover').checked = false;
             pendingCoverImage = null; pendingCoverUrl = null;
-            const errEl = $('coverUrlError'); errEl.classList.add('hidden'); errEl.textContent = '';
+            $('coverUrlError').classList.add('hidden');
             updateCoverPreview();
 
             displayedCount = UI_PAGE_SIZE;
-            renderBooks();
-            showToast('Livre publié avec succès !');
+            renderBooks(); scheduleHomeRefresh();
+            showToast('Livre publié !');
             switchTab('bibliotheque');
         }
 
-        /* =========================================================
-           REALTIME
-           ========================================================= */
+        // === REALTIME ===
         function subscribeRealtime() {
             if (realtimeChannel) sb.removeChannel(realtimeChannel);
             realtimeChannel = sb.channel('biblio-live')
@@ -1909,32 +1713,32 @@
                     realtimeReloadTimer = setTimeout(async () => {
                         await reloadFromScratch();
                         displayedCount = Math.max(displayedCount, UI_PAGE_SIZE);
-                        renderBooks();
+                        renderBooks(); loadGlobalStats();
                     }, 400);
                 })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, (payload) => {
-                    const bid = payload.new?.book_id || payload.old?.book_id;
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, (p) => {
+                    const bid = p.new?.book_id || p.old?.book_id;
                     if (bid) commentsCache.delete(bid);
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'book_tags' }, () => {
+                    clearTimeout(realtimeReloadTimer);
+                    realtimeReloadTimer = setTimeout(async () => { await loadTagsAndBookTags(); renderBooks(); }, 500);
                 })
                 .subscribe();
         }
 
-        /* =========================================================
-           BOOTSTRAP SUPABASE
-           ========================================================= */
+        // === BOOTSTRAP ===
         async function bootstrapSupabase() {
             if (!window.supabase) { showToast('SDK Supabase introuvable.', 'error'); return false; }
             sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                 auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' }
             });
-
             let { data: { session } } = await sb.auth.getSession();
             if (!session) {
                 const { error } = await sb.auth.signInAnonymously();
-                if (error) { console.error(error); showToast('Auth anonyme désactivée côté Supabase.', 'error'); return false; }
+                if (error) { showToast('Auth anonyme désactivée.', 'error'); return false; }
                 ({ data: { session } } = await sb.auth.getSession());
             }
-
             currentUserId = session?.user?.id || null;
             currentUserEmail = session?.user?.email || null;
             isAnonymousUser = session?.user?.is_anonymous === true || (!currentUserEmail && !session?.user?.phone);
@@ -1945,26 +1749,22 @@
                 currentUserId = sess.user?.id || currentUserId;
                 currentUserEmail = sess.user?.email || null;
                 isAnonymousUser = sess.user?.is_anonymous === true || (!currentUserEmail && !sess.user?.phone);
-                if (event === 'USER_UPDATED' && !isAnonymousUser) {
-                    showToast('Compte permanent activé ! 🎉');
-                    closeLoginModal();
-                }
+                if (event === 'USER_UPDATED' && !isAnonymousUser) { showToast('Compte permanent activé ! 🎉'); closeLoginModal(); }
                 updateProfileStats();
             });
 
             const { data: prof } = await sb.from('profiles').select('display_name').eq('id', currentUserId).maybeSingle();
             if (prof?.display_name) localStorage.setItem('profileName', prof.display_name);
 
-            await migrateLocalStorageToSupabase();
             await loadFavorites();
+            await loadTagsAndBookTags();
             await loadBooksPage(true);
+            loadGlobalStats();
             subscribeRealtime();
             return true;
         }
 
-        /* =========================================================
-           INIT
-           ========================================================= */
+        // === INIT ===
         async function init() {
             initTheme();
 
@@ -1972,26 +1772,22 @@
             $('exportBtn').addEventListener('click', exportLibrary);
             $('importBtn').addEventListener('click', () => $('importFile').click());
             $('importFile').addEventListener('change', importLibrary);
-
             $('bookForm').addEventListener('submit', handleSubmit);
             $('link').addEventListener('input', () => showLinkError(''));
-
             $('coverImage').addEventListener('change', handleCoverChange);
 
             let coverUrlTimer = null;
             $('coverUrl').addEventListener('input', (e) => {
                 clearTimeout(coverUrlTimer);
-                const value = e.target.value;
-                coverUrlTimer = setTimeout(() => handleCoverUrlChange(value), 400);
+                const v = e.target.value;
+                coverUrlTimer = setTimeout(() => handleCoverUrlChange(v), 400);
             });
-
             $('coverClear').addEventListener('click', handleCoverClear);
             $('categorySelect').addEventListener('change', handleCategoryChange);
 
             $('closeModalBtn').addEventListener('click', closeReviewsModal);
             $('reviewsModal').addEventListener('click', (e) => { if (e.target === $('reviewsModal')) closeReviewsModal(); });
             $('reviewForm').addEventListener('submit', handleReviewSubmit);
-
             $('starPicker').querySelectorAll('span').forEach((star, idx) => {
                 star.addEventListener('click', () => { selectedRating = idx + 1; updateStarPickerUI(); });
             });
@@ -2005,23 +1801,15 @@
             $('closeLoginBtn').addEventListener('click', closeLoginModal);
             $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) closeLoginModal(); });
             $('loginForm').addEventListener('submit', handleLoginSubmit);
-            $('loginBackBtn').addEventListener('click', () => {
-                $('loginStep1').classList.remove('hidden');
-                $('loginStep2').classList.add('hidden');
-            });
+            $('loginBackBtn').addEventListener('click', () => { $('loginStep1').classList.remove('hidden'); $('loginStep2').classList.add('hidden'); });
             $('signOutBtn').addEventListener('click', handleSignOut);
 
             let searchTimer = null;
             $('searchInput').addEventListener('input', (e) => {
                 clearTimeout(searchTimer);
                 const v = e.target.value;
-                searchTimer = setTimeout(() => {
-                    currentSearchQuery = v;
-                    displayedCount = UI_PAGE_SIZE;
-                    renderBooks();
-                }, 250);
+                searchTimer = setTimeout(() => { currentSearchQuery = v; displayedCount = UI_PAGE_SIZE; renderBooks(); }, 250);
             });
-
             $('minRatingFilter').addEventListener('change', (e) => { currentMinRating = Number(e.target.value); displayedCount = UI_PAGE_SIZE; renderBooks(); });
             $('sortSelect').addEventListener('change', (e) => { currentSort = e.target.value; displayedCount = UI_PAGE_SIZE; renderBooks(); });
 
@@ -2030,14 +1818,13 @@
                 localStorage.setItem('profileName', name);
                 $('profileNameDisplay').textContent = name;
                 const { error } = await sb.from('profiles').upsert({ id: currentUserId, display_name: name }, { onConflict: 'id' });
-                if (error) { showToast('Enregistrement distant impossible.', 'error'); return; }
+                if (error) { showToast('Erreur.', 'error'); return; }
                 updateProfileStats();
                 showToast('Profil mis à jour !');
             });
 
             const savedView = localStorage.getItem('libraryViewMode');
             if (savedView && ['grid', 'list', 'compact'].includes(savedView)) currentView = savedView;
-
             $('viewGridBtn').addEventListener('click', () => setView('grid'));
             $('viewListBtn').addEventListener('click', () => setView('list'));
             $('viewCompactBtn').addEventListener('click', () => setView('compact'));
@@ -2045,13 +1832,13 @@
             updateViewUI();
             updateProfileStats();
             initInfiniteScroll();
-
             renderSkeletons(6);
 
             const ok = await bootstrapSupabase();
             if (!ok) {
-                const grid = $('booksGrid');
-                grid.innerHTML = '<p class="text-red-400 text-sm col-span-full text-center py-12">Connexion au cloud impossible. Vérifiez la configuration Supabase.</p>';
+                $('booksGrid').innerHTML = '<p class="text-red-400 text-sm col-span-full text-center py-12">Connexion au cloud impossible.</p>';
+            } else {
+                renderHomeSections();
             }
         }
 
