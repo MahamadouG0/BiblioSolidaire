@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bibliothèque Solidaire & Partage</title>
+    <!-- PWA Manifest intégré -->
+    <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Biblioth%C3%A8que%20Solidaire%22%2C%22short_name%22%3A%22BiblioSolidaire%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f172a%22%2C%22theme_color%22%3A%22%230d9488%22%2C%22icons%22%3A%5B%5D%7D'>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- PDF.js : rendu local de la 1re page des PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+    <!-- SDK Supabase (UMD → window.supabase) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
+    <style>
+        /* ============ VUE GRILLE (par défaut) — cartes A4, coins droits ============ */
+        .view-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 1.25rem;
+        }
+        @media (min-width: 640px) {
+            .view-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 1024px) {
+            .view-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        .view-grid .book-card { border-radius: 0 !important; }
+        .view-grid .book-cover-wrapper { border-radius: 0 !important; }
+
+        /* ============ VUE LISTE ============ */
+        .view-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .view-list .book-card {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            overflow: hidden;
+            padding: 0 !important;
+            border-radius: 0 !important;
+        }
+        .view-list .book-cover-wrapper {
+            width: 30%;
+            flex-shrink: 0;
+            margin-bottom: 0 !important;
+            border-radius: 0 !important;
+            aspect-ratio: auto !important;
+            height: auto;
+            position: relative;
+        }
+        .view-list .book-cover-wrapper img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .view-list .book-cover-wrapper img.pdf-cover-img {
+            object-fit: contain;
+        }
+        .view-list .book-content {
+            width: 70%;
+            padding: 0.65rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .view-list .book-category-badge {
+            position: absolute;
+            top: 0.4rem;
+            left: 0.4rem;
+            z-index: 10;
+            font-size: 0.55rem;
+            padding: 0.1rem 0.35rem;
+        }
+        .view-list .book-delete-btn {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.4rem;
+            z-index: 10;
+            background-color: rgba(15, 23, 42, 0.75);
+            color: white;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Ratio de couverture dynamique */
+        .book-cover-wrapper {
+            aspect-ratio: var(--cover-ratio, 0.707);
+            border-radius: 0 !important;
+        }
+
+        /* ============ VUE COMPACTE ============ */
+        .view-compact {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
+        }
+        @media (min-width: 768px) {
+            .view-compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (min-width: 1280px) {
+            .view-compact { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+        .view-compact .book-card {
+            padding: 0 !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 0 !important;
+        }
+        .view-compact .book-cover-wrapper {
+            aspect-ratio: var(--cover-ratio, 0.75) !important;
+            margin-bottom: 0 !important;
+            border-radius: 0 !important;
+        }
+        .view-compact .book-content {
+            padding: 0.5rem !important;
+        }
+        .view-compact h3 {
+            font-size: 0.75rem !important;
+            line-height: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-weight: 600;
+        }
+        .view-compact p.book-desc { display: none; }
+        .view-compact .book-category-badge {
+            font-size: 0.5rem;
+            padding: 0.1rem 0.3rem;
+        }
+        .view-compact .book-delete-btn { display: none; }
+        .view-compact .book-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.2rem;
+            margin-top: 0.35rem;
+        }
+        .view-compact .book-actions a, 
+        .view-compact .book-actions button {
+            font-size: 0.6rem !important;
+            padding: 0.25rem 0.15rem !important;
+            width: 100%;
+            justify-content: center;
+            border-radius: 0 !important;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        button, a {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button:active, a:active {
+            transform: scale(0.97);
+            transition: transform 0.1s ease;
+        }
+
+        @keyframes cardPop {
+            0%   { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.65); transform: scale(1); }
+            45%  { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); transform: scale(1.02); }
+            100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); transform: scale(1); }
+        }
+        .book-card.fav-pop {
+            animation: cardPop 0.5s ease;
+        }
+        .book-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .book-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .book-card { -webkit-user-select: none; user-select: none; }
+        .book-card p, .book-card h3 { -webkit-user-select: text; user-select: text; }
+    </style>
+</head>
+<body class="bg-[#0b1120] text-slate-100 min-h-screen selection:bg-teal-500 selection:text-white transition-colors duration-300 pb-24 lg:pb-12">
+    
+    <!-- Barre de navigation supérieure (Glassmorphism) -->
+    <nav class="sticky top-0 z-40 bg-white/80 dark:bg-[#0b1120]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm">
+        <div class="container mx-auto px-4 max-w-7xl h-16 flex items-center justify-between">
+            <a href="#" onclick="switchTab('accueil'); return false;" class="flex items-center gap-3 font-bold text-teal-600 dark:text-teal-400 text-base sm:text-lg group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <span class="tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-emerald-500 dark:from-teal-400 dark:to-emerald-300">BiblioSolidaire</span>
+            </a>
+
+            <div class="flex items-center gap-4">
+                <button onclick="switchTab('bibliotheque')" class="hidden sm:inline-flex text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition">Catalogue</button>
+                <button onclick="switchTab('accueil')" class="hidden sm:inline-flex text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition">Partager</button>
+                
+                <div class="h-5 w-[1px] bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+
+                <div class="flex items-center gap-2">
+                    <button id="exportBtn" type="button" title="Exporter la bibliothèque (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    </button>
+                    <button id="importBtn" type="button" title="Importer une sauvegarde (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                    <input type="file" id="importFile" accept=".json" class="hidden">
+
+                    <button id="themeToggleBtn" type="button" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80" aria-label="Basculer le thème">
+                        <svg id="sunIcon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg id="moonIcon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl">
+        
+        <!-- VUE 1 : ACCUEIL -->
+        <div id="viewAccueil" class="space-y-8">
+            <header class="text-center max-w-2xl mx-auto space-y-3 pt-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold tracking-wide uppercase border border-teal-500/20">Plateforme collaborative</span>
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-emerald-400 to-teal-500 tracking-tight">Bibliothèque Solidaire</h1>
+                <p class="text-sm sm:text-base text-slate-400">Partagez, évaluez et téléchargez des ressources numériques de qualité en toute simplicité.</p>
+            </header>
+
+            <div class="bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 rounded-2xl p-6 sm:p-8 text-white shadow-2xl shadow-teal-500/20 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden border border-white/10">
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="space-y-2 relative z-10 text-center sm:text-left">
+                    <span class="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-medium tracking-wide uppercase mb-1">Communauté ouverte</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Rejoignez le mouvement du savoir partagé</h2>
+                    <p class="text-sm text-teal-100 max-w-lg leading-relaxed">Découvrez des centaines de livres partagés par les membres ou contribuez dès maintenant en publiant vos documents PDF.</p>
+                </div>
+                <div class="relative z-10 shrink-0">
+                    <button onclick="switchTab('bibliotheque')" class="bg-white text-teal-900 font-bold px-6 py-3.5 rounded-xl text-xs sm:text-sm shadow-lg hover:bg-teal-50 transition transform hover:-translate-y-0.5">Explorer le catalogue</button>
+                </div>
+            </div>
+
+            <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800/80 max-w-2xl mx-auto">
+                <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-100 dark:border-slate-800">
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center border border-teal-500/20">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        Partager un nouveau livre
+                    </h2>
+                </div>
+                
+                <form id="bookForm" class="space-y-4" novalidate>
+                    <div class="space-y-1">
+                        <label for="title" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Titre du livre</label>
+                        <input type="text" id="title" required maxlength="150" placeholder="Ex: Algorithmique appliquée"
+                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="author" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Auteur</label>
+                        <input type="text" id="author" required maxlength="100" placeholder="Ex: Nom de l'auteur"
+                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition">
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <label for="categorySelect" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Catégorie</label>
+                        <select id="categorySelect" required
+                                class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition">
+                            <option value="" disabled selected>-- Choisir une catégorie --</option>
+                            <option value="Informatique">Informatique</option>
+                            <option value="Roman">Roman</option>
+                            <option value="Science-Fiction">Science-Fiction</option>
+                            <option value="Histoire">Histoire</option>
+                            <option value="Philosophie">Philosophie</option>
+                            <option value="Mathématiques">Mathématiques</option>
+                            <option value="Physique">Physique</option>
+                            <option value="Biologie">Biologie</option>
+                            <option value="Économie">Économie</option>
+                            <option value="Droit">Droit</option>
+                            <option value="Médecine">Médecine</option>
+                            <option value="Langues">Langues</option>
+                            <option value="Art">Art</option>
+                            <option value="Musique">Musique</option>
+                            <option value="Cuisine">Cuisine</option>
+                            <option value="Voyage">Voyage</option>
+                            <option value="Sport">Sport</option>
+                            <option value="Développement Personnel">Développement Personnel</option>
+                            <option value="Bande Dessinée">Bande Dessinée</option>
+                            <option value="Poésie">Poésie</option>
+                            <option value="Théâtre">Théâtre</option>
+                            <option value="Autre...">Autre (Saisir manuellement)</option>
+                        </select>
+                        <input type="text" id="categoryCustom" placeholder="Saisissez la nouvelle catégorie..." maxlength="50"
+                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 mt-2 hidden">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="description" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Description</label>
+                        <textarea id="description" rows="3" maxlength="500" placeholder="Courte description de l'ouvrage..."
+                                  class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="link" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Lien Google Drive ou URL PDF</label>
+                        <input type="url" id="link" required placeholder="https://drive.google.com/file/d/.../view"
+                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition">
+                        <p id="linkError" class="text-red-400 text-xs mt-1 hidden" role="alert"></p>
+                    </div>
+
+                    <div class="space-y-3 p-4 bg-slate-50/50 dark:bg-[#0b1120]/60 rounded-xl border border-slate-200/80 dark:border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Image de couverture <span class="text-slate-400 font-normal normal-case">(optionnelle)</span></span>
+                        </div>
+
+                        <div>
+                            <label for="coverImage" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                📁 Importer un fichier <span class="text-teal-400">(prioritaire)</span>
+                            </label>
+                            <input type="file" id="coverImage" accept="image/*"
+                                   class="block w-full text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer
+                                          file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold
+                                          file:bg-teal-600 file:text-white hover:file:bg-teal-500 transition">
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 h-px bg-slate-200 dark:bg-slate-800"></div>
+                            <span class="text-[10px] uppercase text-slate-400 tracking-wider font-semibold">OU</span>
+                            <div class="flex-1 h-px bg-slate-200 dark:bg-slate-800"></div>
+                        </div>
+
+                        <div>
+                            <label for="coverUrl" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                🌐 Lien URL de l'image <span id="coverUrlHint" class="text-slate-400 font-normal"></span>
+                            </label>
+                            <input type="url" id="coverUrl" placeholder="https://exemple.com/couverture.jpg"
+                                   class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition">
+                            <p id="coverUrlError" class="text-red-400 text-xs mt-1 hidden" role="alert"></p>
+                        </div>
+
+                        <div id="coverPreviewWrap" class="hidden items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <img id="coverPreview" alt="Aperçu" class="w-12 h-16 object-cover rounded shadow bg-slate-100 dark:bg-slate-950">
+                            <div class="flex-1 min-w-0">
+                                <p id="coverPreviewLabel" class="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">Aperçu</p>
+                                <button type="button" id="coverClear" class="text-xs text-red-400 hover:underline font-semibold mt-1">Retirer la couverture</button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                            <div class="flex-1 min-w-0">
+                                <label for="autoPdfCover" class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 cursor-pointer">
+                                    <svg class="w-3.5 h-3.5 text-teal-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                    Convertir la 1<sup>re</sup> page du PDF
+                                </label>
+                                <p class="text-[10px] text-slate-400 mt-0.5 leading-tight">Utilisée comme couverture si aucune image n'est fournie.</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer shrink-0" aria-label="Activer la conversion PDF">
+                                <input type="checkbox" id="autoPdfCover" class="sr-only peer">
+                                <div class="w-11 h-6 bg-slate-700 peer-checked:bg-teal-600 rounded-full
+                                            peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/40
+                                            transition-colors
+                                            after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                                            after:bg-white after:rounded-full after:h-5 after:w-5
+                                            after:transition-all after:shadow
+                                            peer-checked:after:translate-x-5"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl transition shadow-lg shadow-teal-600/25 transform hover:-translate-y-0.5">
+                        Publier le don
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- VUE 2 : BIBLIOTHÈQUE -->
+        <div id="viewBibliotheque" class="space-y-6 hidden">
+            <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Catalogue de la Bibliothèque</h1>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Parcourez, filtrez et téléchargez l'ensemble des ressources partagées.</p>
+                </div>
+            </header>
+
+            <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                    
+                    <!-- Barre de recherche -->
+                    <div class="relative md:col-span-5">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </span>
+                        <input type="text" id="searchInput" placeholder="Rechercher par titre, auteur..."
+                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                    </div>
+
+                    <!-- Filtre Combiné par Note Minimale -->
+                    <div class="md:col-span-3">
+                        <select id="minRatingFilter" aria-label="Filtrer par note minimale" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                            <option value="0">Toutes les notes ⭐</option>
+                            <option value="3">3 étoiles et plus ⭐⭐⭐</option>
+                            <option value="4">4 étoiles et plus ⭐⭐⭐⭐</option>
+                            <option value="5">5 étoiles parfaites ⭐⭐⭐⭐⭐</option>
+                        </select>
+                    </div>
+
+                    <!-- Tri Combiné Avancé -->
+                    <div class="md:col-span-4 flex items-center gap-3">
+                        <select id="sortSelect" aria-label="Trier les livres" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                            <option value="recent">Tri : Plus récents</option>
+                            <option value="popular">Tri : Plus populaires</option>
+                            <option value="rating">Tri : Mieux notés ⭐</option>
+                            <option value="alpha">Tri : Ordre alphabétique (A-Z)</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div id="categoryChips" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                        <!-- Dynamique -->
+                    </div>
+
+                    <div class="flex items-center justify-between lg:justify-end gap-4 shrink-0">
+                        <span id="bookCount" class="text-xs font-medium text-slate-400"></span>
+                        <div class="flex items-center bg-slate-100 dark:bg-[#0b1120] rounded-xl p-1 border border-slate-200 dark:border-slate-800">
+                            <button id="viewCompactBtn" title="Vue Compacte" class="p-2 rounded-lg text-slate-400 hover:text-white transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                            </button>
+                            <button id="viewGridBtn" title="Vue Grille" class="p-2 rounded-lg text-slate-400 hover:text-white transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg>
+                            </button>
+                            <button id="viewListBtn" title="Vue Liste" class="p-2 rounded-lg text-slate-400 hover:text-white transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="booksGrid" class="view-grid gap-5"></div>
+            
+            <!-- Indicateur de fin de liste / Chargement infini -->
+            <div id="infiniteScrollSentinel" class="py-6 text-center text-xs text-slate-500 hidden">
+                Chargement des livres suivants...
+            </div>
+        </div>
+
+        <!-- VUE 3 : PROFIL -->
+        <div id="viewProfile" class="space-y-6 hidden max-w-lg mx-auto">
+            <header class="text-center space-y-1">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mon Profil</h1>
+                <p class="text-xs sm:text-sm text-slate-400">Gérez vos informations personnelles et vos statistiques de lecture.</p>
+            </header>
+
+            <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 text-center space-y-6">
+                <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-400 text-white flex items-center justify-center text-2xl font-bold shadow-xl shadow-teal-500/25">
+                    <span id="profileAvatarInitials">MS</span>
+                </div>
+                <div>
+                    <h2 id="profileNameDisplay" class="text-lg font-bold text-slate-900 dark:text-white">Membre solidaire</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Membre actif de la communauté</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div class="bg-slate-50 dark:bg-[#0b1120] p-4 rounded-xl border border-slate-200/50 dark:border-slate-800">
+                        <span id="statBooksCount" class="block text-2xl font-extrabold text-teal-400">0</span>
+                        <span class="text-xs text-slate-400 font-medium">Livres partagés</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-[#0b1120] p-4 rounded-xl border border-slate-200/50 dark:border-slate-800">
+                        <span id="statFavoritesCount" class="block text-2xl font-extrabold text-teal-400">0</span>
+                        <span class="text-xs text-slate-400 font-medium">Favoris enregistrés</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 text-left space-y-4 border-t border-slate-100 dark:border-slate-800">
+                    <div class="space-y-1">
+                        <label for="userNameInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Nom d'affichage</label>
+                        <input type="text" id="userNameInput" value="Membre solidaire"
+                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                    </div>
+                    <button type="button" id="saveProfileBtn" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3 px-4 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-teal-600/25">
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Barre de navigation mobile en bas (Glassmorphism) -->
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-xl border-t border-slate-200/60 dark:border-slate-800/60 px-4 py-2.5 flex items-center justify-around shadow-2xl">
+        <button onclick="switchTab('accueil')" id="navBtnAccueil" class="flex flex-col items-center gap-1 text-teal-400 transition py-1 px-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span class="text-[10px] font-semibold">Accueil</span>
+        </button>
+        <button onclick="switchTab('bibliotheque')" id="navBtnBibliotheque" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition py-1 px-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            <span class="text-[10px] font-semibold">Catalogue</span>
+        </button>
+        <button onclick="switchTab('profile')" id="navBtnProfile" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition py-1 px-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span class="text-[10px] font-semibold">Profil</span>
+        </button>
+    </div>
+
+    <!-- Modal d'Avis & Commentaires -->
+    <div id="reviewsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+                <div>
+                    <h3 id="modalBookTitle" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Avis et Commentaires</h3>
+                    <p class="text-xs text-slate-400">Partagez votre avis sur cet ouvrage</p>
+                </div>
+                <button id="closeModalBtn" aria-label="Fermer la fenêtre modale" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div id="modalCommentsList" class="flex-1 overflow-y-auto space-y-3 pr-1 mb-4 max-h-60">
+                <!-- Dynamique -->
+            </div>
+
+            <form id="reviewForm" class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <input type="hidden" id="modalBookId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Votre note</label>
+                    <div id="starPicker" class="flex items-center gap-1.5 text-2xl cursor-pointer">
+                        <span data-val="1" class="text-slate-700 hover:text-amber-400 transition-colors">★</span>
+                        <span data-val="2" class="text-slate-700 hover:text-amber-400 transition-colors">★</span>
+                        <span data-val="3" class="text-slate-700 hover:text-amber-400 transition-colors">★</span>
+                        <span data-val="4" class="text-slate-700 hover:text-amber-400 transition-colors">★</span>
+                        <span data-val="5" class="text-slate-700 hover:text-amber-400 transition-colors">★</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="commentAuthor" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Votre nom</label>
+                    <input type="text" id="commentAuthor" required placeholder="Ex: Jean Dupont"
+                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                </div>
+                <div>
+                    <label for="commentText" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Votre commentaire</label>
+                    <textarea id="commentText" rows="2" required placeholder="Qu'avez-vous pensé de ce livre ?"
+                              class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-teal-600/25">
+                    Publier l'avis
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast de notification -->
+    <div id="toast" role="status" aria-live="polite" hidden
+         class="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold shadow-2xl z-50 transition-all duration-300 border backdrop-blur-xl "
+         style="opacity:0;"></div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        /* =========================================================
+           SUPABASE — CONFIGURATION
+           ========================================================= */
+        const SUPABASE_URL      = 'https://evxzjmqbrowwjhvsvgqv.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_kD1Qh2sIOJIEYL3a3_l8Rw_5JE_3rFi';
+
+        let sb             = null;
+        let currentUserId  = null;
+        let realtimeChannel = null;
+        let realtimeReloadTimer = null;
+
+        /* =========================================================
+           CONSTANTES
+           ========================================================= */
+        const LEGACY_KEY    = 'solidarity_books_v4';
+        const STORAGE_KEY   = 'solidarity_books_v4';
+        const ALLOWED_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
+        const DRIVE_ID_RE   = /(?:\/file\/d\/|\/d\/|[?&]id=)([a-zA-Z0-9_-]{10,})/;
+        const PDFJS_WORKER_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const COVER_MAX_WIDTH   = 640;
+        const CUSTOM_MAX_WIDTH  = 600;
+        const A4_RATIO = '210 / 297';
+        const A4_RATIO_NUM = 210 / 297;
+        const CUSTOM_RATIO_MIN = 0.5;
+        const CUSTOM_RATIO_MAX = 1.2;
+        const PDF_RATIO_MIN = 0.3;
+        const PDF_RATIO_MAX = 3.0;
+
+        const PAGE_SIZE = 12;
+        let displayedCount = PAGE_SIZE;
+        let filteredBooksCache = [];
+
+        let currentSearchQuery   = '';
+        let currentCategoryFilter = 'TOUT';
+        let currentMinRating     = 0;
+        let currentSort          = 'recent';
+        let selectedRating       = 5;
+        let favFlashId           = null;
+        let currentView          = 'grid';
+
+        const ratioFixAttempted = new Set();
+
+        /* =========================================================
+           CACHES LOCAUX
+           ========================================================= */
+        let booksCache = [];
+        const favoritesSet  = new Set();
+        const commentsCache = new Map();
+        const coverCache    = new Map();
+        const pendingCovers = new Set();
+        const attemptedCovers = new Set();
+
+        /* =========================================================
+           UTILITAIRES
+           ========================================================= */
+        const $ = (id) => document.getElementById(id);
+
+        function uid() {
+            if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+            return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+        }
+
+        function withTimeout(promise, ms, label) {
+            return new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error(label || 'Délai dépassé')), ms);
+                promise.then(v => { clearTimeout(timer); resolve(v); }, e => { clearTimeout(timer); reject(e); });
+            });
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        const PLACEHOLDER_COVER =
+            'data:image/svg+xml;charset=utf-8,' +
+            encodeURIComponent(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 594">' +
+                '<rect width="420" height="594" fill="#0b1120"/>' +
+                '<rect x="50" y="60" width="320" height="474" rx="16" fill="#1e293b" stroke="#334155" stroke-width="3"/>' +
+                '<path d="M100 170h220M100 230h220M100 290h160" stroke="#475569" stroke-width="12" stroke-linecap="round"/>' +
+                '<text x="210" y="460" font-family="sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Aperçu indisponible</text>' +
+                '</svg>'
+            );
+
+        /* =========================================================
+           ANALYSE DE LIEN
+           ========================================================= */
+        function analyzeLink(raw) {
+            const trimmed = String(raw || '').trim();
+            if (!trimmed) return { ok: false, error: 'Le lien est obligatoire.' };
+            let url;
+            try { url = new URL(trimmed); } catch { return { ok: false, error: 'Lien invalide.' }; }
+            if (url.protocol !== 'https:') return { ok: false, error: 'Le lien doit utiliser HTTPS.' };
+
+            const idMatch = trimmed.match(DRIVE_ID_RE);
+            if (ALLOWED_HOSTS.has(url.hostname)) {
+                if (!idMatch) return { ok: false, error: "Impossible d'extraire l'identifiant du fichier Drive." };
+                const id = idMatch[1];
+                return {
+                    ok: true, kind: 'drive', fileId: id,
+                    directUrl: 'https://drive.google.com/file/d/' + id + '/view',
+                    previewUrl: 'https://drive.google.com/file/d/' + id + '/preview',
+                    thumbUrl: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w1200'
+                };
+            }
+            return { ok: true, kind: 'external', directUrl: url.href, previewUrl: null, thumbUrl: null };
+        }
+
+        /* =========================================================
+           MAPPERS
+           ========================================================= */
+        function rowToBook(r) {
+            return {
+                id:              r.id,
+                title:           r.title,
+                author:          r.author,
+                category:        r.category,
+                description:     r.description || '',
+                kind:            r.kind,
+                fileId:          r.file_id,
+                direct_url:      r.direct_url,
+                preview_url:     r.preview_url,
+                thumb_url:       r.thumb_url,
+                cover_url:       r.cover_url,
+                cover_data:      null,
+                cover_ratio:     r.cover_ratio != null ? Number(r.cover_ratio) : null,
+                cover_source:    r.cover_source,
+                auto_pdf_cover:  !!r.auto_pdf_cover,
+                downloads:       r.downloads || 0,
+                rating:          Number(r.rating) || 0,
+                favorite:        favoritesSet.has(r.id),
+                comments:        commentsCache.get(r.id) || [],
+                comments_count:  Array.isArray(r.comments) && r.comments[0] ? (r.comments[0].count ?? 0) : (commentsCache.get(r.id)?.length || 0),
+                created_at:      r.created_at,
+                user_id:         r.user_id,
+                _canDelete:      r.user_id === currentUserId
+            };
+        }
+
+        /* =========================================================
+           CHARGEMENT DEPUIS SUPABASE
+           ========================================================= */
+        async function loadFavorites() {
+            favoritesSet.clear();
+            if (!currentUserId) return;
+            const { data, error } = await sb.from('favorites').select('book_id');
+            if (error) { console.warn('favorites:', error.message); return; }
+            (data || []).forEach(f => favoritesSet.add(f.book_id));
+        }
+
+        async function loadBooks() {
+            const { data, error } = await sb
+                .from('books')
+                .select('*, comments(count)')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error(error);
+                showToast('Chargement impossible.', 'error');
+                return;
+            }
+            booksCache = (data || []).map(rowToBook);
+            scheduleRender();
+        }
+
+        async function loadComments(bookId) {
+            const { data, error } = await sb
+                .from('comments')
+                .select('*')
+                .eq('book_id', bookId)
+                .order('created_at', { ascending: false });
+
+            if (error) { console.warn('comments:', error.message); return []; }
+
+            const list = data.map(c => ({
+                id: c.id, author: c.author, text: c.text,
+                rating: c.rating, date: c.created_at, user_id: c.user_id
+            }));
+            commentsCache.set(bookId, list);
+            return list;
+        }
+
+        /* =========================================================
+           UPLOAD COUVERTURE
+           ========================================================= */
+        async function uploadCoverDataUrl(dataUrl) {
+            const blob = await (await fetch(dataUrl)).blob();
+            const ext  = blob.type.includes('png') ? 'png' : 'jpg';
+            const path = `${currentUserId}/${uid()}.${ext}`;
+
+            const { error } = await sb.storage
+                .from('covers')
+                .upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
+            if (error) throw error;
+
+            const { data } = sb.storage.from('covers').getPublicUrl(path);
+            return { url: data.publicUrl, path };
+        }
+
+        /* =========================================================
+           MIGRATION LOCALSTORAGE → SUPABASE
+           ========================================================= */
+        async function migrateLocalStorageToSupabase() {
+            const done = localStorage.getItem('supabase_migrated_v4');
+            if (done) return;
+
+            let legacy = null;
+            try {
+                legacy = JSON.parse(
+                    localStorage.getItem(STORAGE_KEY) ||
+                    localStorage.getItem(LEGACY_KEY) || '[]'
+                );
+            } catch { legacy = null; }
+
+            if (Array.isArray(legacy) && legacy.length && currentUserId) {
+                const rows = legacy.map(b => ({
+                    user_id:        currentUserId,
+                    title:          String(b.title || 'Sans titre').slice(0, 150),
+                    author:         String(b.author || 'Inconnu').slice(0, 100),
+                    category:       String(b.category || 'Autre').slice(0, 80),
+                    description:    String(b.description || '').slice(0, 1000),
+                    kind:           b.kind === 'drive' ? 'drive' : 'external',
+                    file_id:        b.fileId || null,
+                    direct_url:     b.direct_url,
+                    preview_url:    b.preview_url || null,
+                    thumb_url:      b.thumb_url || null,
+                    cover_url:      b.cover_url || null,
+                    cover_ratio:    b.cover_ratio || null,
+                    cover_source:   b.cover_source || null,
+                    auto_pdf_cover: !!b.auto_pdf_cover,
+                    downloads:      b.downloads || 0
+                })).filter(r => r.direct_url);
+
+                if (rows.length) {
+                    const { error } = await sb.from('books').insert(rows);
+                    if (error) console.warn('Migration échouée :', error.message);
+                    else showToast(`${rows.length} livre(s) migré(s) vers le cloud ☁️`);
+                }
+            }
+            localStorage.setItem('supabase_migrated_v4', '1');
+        }
+
+        /* =========================================================
+           TOAST
+           ========================================================= */
+        let toastTimer;
+        function showToast(message, type) {
+            const el = $('toast');
+            el.textContent = message;
+            el.className = 'fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold shadow-2xl z-50 transition-all duration-300 border backdrop-blur-xl ' +
+                (type === 'error' ? 'bg-red-600/90 text-white border-red-500/30' : 'bg-teal-600/90 text-white border-teal-500/30');
+            el.hidden = false;
+            requestAnimationFrame(() => { el.style.opacity = '1'; });
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                el.style.opacity = '0';
+                setTimeout(() => { el.hidden = true; }, 300);
+            }, 3000);
+        }
+
+        /* =========================================================
+           IMAGES / RATIO / PDF
+           ========================================================= */
+        function imageLoads(url, timeout) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                let done = false;
+                const finish = (ok) => { if (done) return; done = true; resolve(ok); };
+                const timer = setTimeout(() => finish(false), timeout || 8000);
+                img.onload = () => { clearTimeout(timer); finish(img.naturalWidth > 0 && img.naturalHeight > 0); };
+                img.onerror = () => { clearTimeout(timer); finish(false); };
+                img.referrerPolicy = 'no-referrer';
+                img.src = url;
+            });
+        }
+
+        function getImageRatio(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(img.naturalHeight ? img.naturalWidth / img.naturalHeight : null);
+                img.onerror = () => resolve(null);
+                img.referrerPolicy = 'no-referrer';
+                img.src = url;
+            });
+        }
+
+        async function renderPdfFirstPage(pdfUrl, maxWidth) {
+            const lib = window.pdfjsLib;
+            if (!lib) throw new Error('PDF.js non chargé');
+            lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+            const loadingTask = lib.getDocument({ url: pdfUrl, withCredentials: false, disableAutoFetch: true, disableStream: true });
+            const pdf = await loadingTask.promise;
+            try {
+                const page = await pdf.getPage(1);
+                const base = page.getViewport({ scale: 1 });
+                const scale = Math.min(3, Math.max(0.2, (maxWidth || COVER_MAX_WIDTH) / base.width));
+                const viewport = page.getViewport({ scale });
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(viewport.width));
+                canvas.height = Math.max(1, Math.round(viewport.height));
+                const ctx = canvas.getContext('2d', { alpha: false });
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                await page.render({ canvasContext: ctx, viewport }).promise;
+                const ratio = canvas.width / canvas.height;
+                return { data: canvas.toDataURL('image/jpeg', 0.75), ratio };
+            } finally { try { pdf.destroy(); } catch {} }
+        }
+
+        function clampPdfRatio(r) {
+            if (!r || !isFinite(r) || r <= 0) return null;
+            return Math.max(PDF_RATIO_MIN, Math.min(PDF_RATIO_MAX, r));
+        }
+
+        function clampRatio(r) {
+            if (!r || !isFinite(r)) return null;
+            return Math.max(CUSTOM_RATIO_MIN, Math.min(CUSTOM_RATIO_MAX, r));
+        }
+
+        async function generatePdfCover(book) {
+            if (book.kind === 'drive' && book.fileId) {
+                const url = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(book.fileId) + '&sz=w1200';
+                if (await imageLoads(url)) {
+                    const rawRatio = await getImageRatio(url);
+                    return { cover_url: url, cover_data: null, cover_ratio: clampPdfRatio(rawRatio), cover_source: 'pdf' };
+                }
+            }
+            const pdfUrl = (book.kind === 'drive' && book.fileId)
+                ? 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(book.fileId)
+                : book.direct_url;
+            if (pdfUrl) {
+                try {
+                    const result = await withTimeout(renderPdfFirstPage(pdfUrl, COVER_MAX_WIDTH), 15000, 'Rendu PDF trop long');
+                    if (result && result.data) {
+                        return { cover_data: result.data, cover_url: null, cover_ratio: clampPdfRatio(result.ratio), cover_source: 'pdf' };
+                    }
+                } catch (err) { console.warn('Aperçu PDF impossible :', err && err.message); }
+            }
+            return null;
+        }
+
+        async function persistCover(id, patch) {
+            const book = booksCache.find(b => b.id === id);
+            if (!book) return;
+
+            let cover_url  = patch.cover_url ?? book.cover_url ?? null;
+            let cover_path = null;
+
+            if (patch.cover_data) {
+                try {
+                    const up = await uploadCoverDataUrl(patch.cover_data);
+                    cover_url  = up.url;
+                    cover_path = up.path;
+                    coverCache.set(id, cover_url);
+                } catch (e) {
+                    console.warn('Upload couverture échoué :', e.message);
+                    coverCache.set(id, patch.cover_data);
+                    scheduleRender();
+                    return;
+                }
+            }
+
+            const ratio  = patch.cover_ratio  ?? book.cover_ratio;
+            const source = patch.cover_source ?? book.cover_source;
+
+            const update = {
+                cover_url,
+                cover_ratio:  ratio,
+                cover_source: source
+            };
+            if (cover_path) update.cover_path = cover_path;
+
+            const { error } = await sb.from('books').update(update).eq('id', id);
+            if (error) { console.warn('persistCover:', error.message); return; }
+
+            Object.assign(book, { cover_url, cover_ratio: ratio, cover_source: source });
+            scheduleRender();
+        }
+
+        async function ensureCover(book) {
+            if (book.auto_pdf_cover !== true) return;
+            if (book.cover_data || book.cover_url) return;
+            if (coverCache.has(book.id) || pendingCovers.has(book.id) || attemptedCovers.has(book.id)) return;
+            if (!book.direct_url) return;
+
+            pendingCovers.add(book.id);
+            scheduleRender();
+            let result = null;
+            try { result = await generatePdfCover(book); } catch (err) { console.warn(err); }
+            pendingCovers.delete(book.id);
+
+            if (result && result.cover_data) {
+                coverCache.set(book.id, result.cover_data);
+                persistCover(book.id, {
+                    cover_data: result.cover_data,
+                    cover_url: null,
+                    cover_ratio: result.cover_ratio || null,
+                    cover_source: 'pdf'
+                });
+            } else if (result && result.cover_url) {
+                coverCache.set(book.id, result.cover_url);
+                persistCover(book.id, {
+                    cover_url: result.cover_url,
+                    cover_data: null,
+                    cover_ratio: result.cover_ratio || null,
+                    cover_source: 'pdf'
+                });
+            } else {
+                attemptedCovers.add(book.id);
+            }
+            scheduleRender();
+        }
+
+        function coverSrcFor(book) {
+            return book.cover_data || coverCache.get(book.id) || book.cover_url || book.thumb_url || PLACEHOLDER_COVER;
+        }
+
+        /* =========================================================
+           TRAITEMENT COUVERTURE FORMULAIRE
+           ========================================================= */
+        let pendingCoverImage = null;
+        let pendingCoverUrl   = null;
+
+        function processCoverImage(file, maxWidth) {
+            return new Promise((resolve, reject) => {
+                if (!file || !file.type.startsWith('image/')) return reject(new Error('Le fichier doit être une image.'));
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Lecture du fichier impossible.'));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Image illisible.'));
+                    img.onload = () => {
+                        try {
+                            const scale = Math.min(1, (maxWidth || CUSTOM_MAX_WIDTH) / img.naturalWidth);
+                            const w = Math.max(1, Math.round(img.naturalWidth * scale));
+                            const h = Math.max(1, Math.round(img.naturalHeight * scale));
+                            const canvas = document.createElement('canvas');
+                            canvas.width = w; canvas.height = h;
+                            const ctx = canvas.getContext('2d', { alpha: false });
+                            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+                            ctx.drawImage(img, 0, 0, w, h);
+                            resolve({ data: canvas.toDataURL('image/jpeg', 0.8), ratio: clampRatio(w / h) || A4_RATIO_NUM });
+                        } catch (err) { reject(err); }
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updateCoverPreview() {
+            const wrap  = $('coverPreviewWrap');
+            const img   = $('coverPreview');
+            const label = $('coverPreviewLabel');
+            const urlHint = $('coverUrlHint');
+
+            if (pendingCoverImage) {
+                img.src = pendingCoverImage.data;
+                label.textContent = '📁 Aperçu : fichier importé (prioritaire)';
+                label.className = 'text-xs font-semibold text-teal-400 truncate';
+                if (urlHint) urlHint.textContent = '(ignoré — un fichier est importé)';
+                wrap.classList.remove('hidden'); wrap.classList.add('flex');
+            } else if (pendingCoverUrl) {
+                img.src = pendingCoverUrl.url;
+                label.textContent = '🌐 Aperçu : image via URL';
+                label.className = 'text-xs font-semibold text-slate-300 truncate';
+                if (urlHint) urlHint.textContent = '';
+                wrap.classList.remove('hidden'); wrap.classList.add('flex');
+            } else {
+                img.removeAttribute('src');
+                label.textContent = 'Aperçu';
+                label.className = 'text-xs font-semibold text-slate-300 truncate';
+                if (urlHint) urlHint.textContent = '';
+                wrap.classList.add('hidden'); wrap.classList.remove('flex');
+            }
+        }
+
+        async function handleCoverChange(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) { pendingCoverImage = null; updateCoverPreview(); return; }
+            try {
+                const result = await processCoverImage(file, CUSTOM_MAX_WIDTH);
+                pendingCoverImage = result;
+                updateCoverPreview();
+            } catch (err) {
+                pendingCoverImage = null; updateCoverPreview(); event.target.value = '';
+                showToast(err.message || 'Image invalide.', 'error');
+            }
+        }
+
+        async function handleCoverUrlChange(rawValue) {
+            const raw = String(rawValue || '').trim();
+            const errEl = $('coverUrlError');
+
+            if (!raw) {
+                pendingCoverUrl = null;
+                errEl.classList.add('hidden'); errEl.textContent = '';
+                updateCoverPreview();
+                return;
+            }
+
+            let url;
+            try { url = new URL(raw); } catch {
+                errEl.textContent = 'URL invalide.'; errEl.classList.remove('hidden');
+                pendingCoverUrl = null; updateCoverPreview(); return;
+            }
+            if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+                errEl.textContent = 'L\'URL doit commencer par http:// ou https://';
+                errEl.classList.remove('hidden');
+                pendingCoverUrl = null; updateCoverPreview(); return;
+            }
+
+            const ok = await withTimeout(imageLoads(raw, 8000), 9000, 'timeout').catch(() => false);
+            if (!ok) {
+                errEl.textContent = 'Impossible de charger l\'image depuis cette URL.';
+                errEl.classList.remove('hidden');
+                pendingCoverUrl = null; updateCoverPreview(); return;
+            }
+
+            const ratio = clampRatio(await getImageRatio(raw)) || A4_RATIO_NUM;
+            pendingCoverUrl = { url: raw, ratio };
+            errEl.classList.add('hidden'); errEl.textContent = '';
+            updateCoverPreview();
+        }
+
+        function handleCoverClear() {
+            pendingCoverImage = null;
+            pendingCoverUrl   = null;
+            $('coverImage').value = '';
+            $('coverUrl').value = '';
+            const errEl = $('coverUrlError');
+            errEl.classList.add('hidden'); errEl.textContent = '';
+            updateCoverPreview();
+        }
+
+        /* =========================================================
+           TÉLÉCHARGEMENT / FAVORIS / SUPPRESSION
+           ========================================================= */
+        function buildDownloadUrl(book) {
+            if (book.kind === 'drive' && book.fileId) {
+                return 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(book.fileId) + '&confirm=t';
+            }
+            return book.direct_url || '#';
+        }
+
+        function incrementDownloads(id) {
+            const book = booksCache.find(b => b.id === id);
+            if (book) { book.downloads = (book.downloads || 0) + 1; renderBooks(); }
+
+            sb.rpc('increment_downloads', { p_book_id: id })
+              .then(({ error }) => { if (error) console.warn('downloads:', error.message); });
+        }
+
+        function triggerDownload(book) {
+            incrementDownloads(book.id);
+            const url = buildDownloadUrl(book);
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = url;
+            document.body.appendChild(iframe);
+            setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 5000);
+        }
+
+        async function toggleFavorite(id) {
+            const book = booksCache.find(b => b.id === id);
+            if (!book) return;
+
+            const next = !book.favorite;
+            book.favorite = next;
+            next ? favoritesSet.add(id) : favoritesSet.delete(id);
+            favFlashId = id;
+            renderBooks();
+            showToast(next ? 'Ajouté aux favoris ❤️' : 'Retiré des favoris');
+
+            const { error } = next
+                ? await sb.from('favorites').insert({ user_id: currentUserId, book_id: id })
+                : await sb.from('favorites').delete().eq('user_id', currentUserId).eq('book_id', id);
+
+            if (error) {
+                book.favorite = !next;
+                next ? favoritesSet.delete(id) : favoritesSet.add(id);
+                renderBooks();
+                showToast('Action impossible.', 'error');
+            }
+        }
+
+        async function deleteBook(id, title) {
+            if (!window.confirm('Supprimer « ' + (title || 'ce livre') + ' » ?')) return;
+
+            const { error } = await sb.from('books').delete().eq('id', id);
+            if (error) { showToast('Suppression impossible (droits insuffisants).', 'error'); return; }
+
+            booksCache = booksCache.filter(b => b.id !== id);
+            coverCache.delete(id);
+            pendingCovers.delete(id);
+            attemptedCovers.delete(id);
+            ratioFixAttempted.delete(id);
+            commentsCache.delete(id);
+            renderBooks();
+            showToast('Livre supprimé.');
+        }
+
+        /* =========================================================
+           EXPORT / IMPORT
+           ========================================================= */
+        function exportLibrary() {
+            if (!booksCache.length) { showToast('Aucun livre à exporter.', 'error'); return; }
+
+            const clean = booksCache.map(b => {
+                const { _canDelete, comments_count, user_id, ...rest } = b;
+                return rest;
+            });
+
+            const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(clean, null, 2));
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = 'bibliotheque_solidaire_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast('Bibliothèque exportée avec succès !');
+        }
+
+        function importLibrary(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (!Array.isArray(imported)) throw new Error('Format invalide');
+
+                    const replaceAll = window.confirm(
+                        'OK = Remplacer toute la bibliothèque\nAnnuler = Fusionner avec l\'existante'
+                    );
+
+                    if (replaceAll) {
+                        if (!window.confirm('Confirmer la suppression définitive de tous vos livres ?')) return;
+                        const { error } = await sb.from('books').delete().eq('user_id', currentUserId);
+                        if (error) throw error;
+                        booksCache = [];
+                    }
+
+                    const existingUrls = new Set(booksCache.map(b => b.direct_url));
+                    const rows = imported
+                        .filter(b => b && b.direct_url && !existingUrls.has(b.direct_url))
+                        .map(b => ({
+                            user_id:        currentUserId,
+                            title:          String(b.title || 'Sans titre').slice(0, 150),
+                            author:         String(b.author || 'Inconnu').slice(0, 100),
+                            category:       String(b.category || 'Autre').slice(0, 80),
+                            description:    String(b.description || '').slice(0, 1000),
+                            kind:           b.kind === 'drive' ? 'drive' : 'external',
+                            file_id:        b.fileId || null,
+                            direct_url:     b.direct_url,
+                            preview_url:    b.preview_url || null,
+                            thumb_url:      b.thumb_url || null,
+                            cover_url:      b.cover_url || null,
+                            cover_ratio:    b.cover_ratio || null,
+                            cover_source:   b.cover_source || null,
+                            auto_pdf_cover: !!b.auto_pdf_cover,
+                            downloads:      b.downloads || 0
+                        }));
+
+                    if (rows.length) {
+                        const { error } = await sb.from('books').insert(rows);
+                        if (error) throw error;
+                    }
+
+                    await loadBooks();
+                    showToast(`${rows.length} livre(s) importé(s) !`);
+                } catch (err) {
+                    console.error(err);
+                    showToast('Fichier de sauvegarde invalide.', 'error');
+                } finally {
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* =========================================================
+           THÈME
+           ========================================================= */
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        /* =========================================================
+           VUES
+           ========================================================= */
+        function updateViewUI() {
+            const grid = $('booksGrid');
+            grid.classList.remove('view-grid', 'view-list', 'view-compact');
+            grid.classList.add('view-' + currentView);
+
+            ['viewGridBtn', 'viewListBtn', 'viewCompactBtn'].forEach(id => {
+                const btn = $(id);
+                btn.classList.remove('bg-teal-600', 'text-white', 'shadow');
+                btn.classList.add('text-slate-400', 'hover:text-white');
+            });
+
+            const activeBtn = currentView === 'grid' ? 'viewGridBtn' : currentView === 'list' ? 'viewListBtn' : 'viewCompactBtn';
+            $(activeBtn).classList.remove('text-slate-400', 'hover:text-white');
+            $(activeBtn).classList.add('bg-teal-600', 'text-white', 'shadow');
+            localStorage.setItem('libraryViewMode', currentView);
+        }
+
+        function setView(mode) {
+            currentView = mode;
+            updateViewUI();
+        }
+
+        window.switchTab = function(tabName) {
+            const views = ['accueil', 'bibliotheque', 'profile'];
+            views.forEach(v => {
+                const el = $('view' + v.charAt(0).toUpperCase() + v.slice(1));
+                if (el) el.classList.add('hidden');
+                const navBtn = $('navBtn' + v.charAt(0).toUpperCase() + v.slice(1));
+                if (navBtn) {
+                    navBtn.classList.remove('text-teal-400');
+                    navBtn.classList.add('text-slate-400', 'hover:text-white');
+                }
+            });
+
+            const activeView = $('view' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+            if (activeView) activeView.classList.remove('hidden');
+
+            const activeNav = $('navBtn' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+            if (activeNav) {
+                activeNav.classList.remove('text-slate-400', 'hover:text-white');
+                activeNav.classList.add('text-teal-400');
+            }
+
+            if (tabName === 'profile') updateProfileStats();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        function updateProfileStats() {
+            const savedName = localStorage.getItem('profileName') || 'Membre solidaire';
+            $('userNameInput').value = savedName;
+            $('profileNameDisplay').textContent = savedName;
+            $('statBooksCount').textContent = booksCache.filter(b => b.user_id === currentUserId).length;
+            $('statFavoritesCount').textContent = booksCache.filter(b => b.favorite).length;
+
+            const initials = savedName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            $('profileAvatarInitials').textContent = initials || 'MS';
+        }
+
+        /* =========================================================
+           RENDU
+           ========================================================= */
+        let renderQueued = false;
+        function scheduleRender() {
+            if (renderQueued) return;
+            renderQueued = true;
+            requestAnimationFrame(() => { renderQueued = false; renderBooks(); });
+        }
+
+        function createBookCard(book) {
+            const card = document.createElement('article');
+            card.className = 'book-card bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 flex flex-col shadow-md shadow-slate-950/5 relative overflow-hidden';
+
+            const cover = document.createElement('div');
+            cover.className = 'book-cover-wrapper relative overflow-hidden bg-slate-100 dark:bg-[#0b1120] flex items-center justify-center';
+
+            const effectiveRatio = (book.cover_ratio && isFinite(book.cover_ratio) && book.cover_ratio > 0)
+                ? book.cover_ratio
+                : A4_RATIO_NUM;
+            cover.style.setProperty('--cover-ratio', String(effectiveRatio));
+
+            const src = coverSrcFor(book);
+            const isPdfCover = book.cover_source === 'pdf' && !!(book.cover_data || book.cover_url);
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = 'Couverture';
+            img.loading = 'lazy';
+            img.className = 'absolute inset-0 w-full h-full ' + (isPdfCover ? 'object-contain pdf-cover-img' : 'object-cover');
+            img.addEventListener('error', () => { if (img.src !== PLACEHOLDER_COVER) img.src = PLACEHOLDER_COVER; }, { once: true });
+            cover.append(img);
+
+            if (isPdfCover && !book.cover_ratio && book.cover_data && !ratioFixAttempted.has(book.id)) {
+                ratioFixAttempted.add(book.id);
+                const probe = new Image();
+                probe.onload = () => {
+                    const r = probe.naturalWidth / probe.naturalHeight;
+                    const clamped = clampPdfRatio(r);
+                    if (clamped) {
+                        persistCover(book.id, { cover_ratio: clamped });
+                        scheduleRender();
+                    }
+                };
+                probe.onerror = () => {};
+                probe.src = book.cover_data;
+            }
+
+            if (pendingCovers.has(book.id) && src === PLACEHOLDER_COVER) {
+                const badge = document.createElement('span');
+                badge.className = 'absolute bottom-2 left-1/2 -translate-x-1/2 text-[9px] bg-slate-900/90 text-teal-300 px-2 py-0.5 rounded z-10 shadow backdrop-blur-md border border-white/10';
+                badge.textContent = '⏳ Chargement...';
+                cover.append(badge);
+            }
+
+            const cat = document.createElement('span');
+            cat.className = 'book-category-badge text-[9px] bg-teal-600/90 text-white py-0.5 px-2 rounded font-semibold uppercase tracking-wider backdrop-blur-md shadow-sm';
+            cat.textContent = book.category || 'Général';
+            cover.append(cat);
+
+            const favBtn = document.createElement('button');
+            favBtn.type = 'button';
+            favBtn.className = 'absolute top-2 right-8 z-10 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 text-slate-900 dark:text-white rounded w-6 h-6 flex items-center justify-center transition backdrop-blur-md shadow';
+            favBtn.innerHTML = book.favorite ? '<span class="text-red-500 text-xs">❤️</span>' : '<span class="text-slate-400 text-xs">🤍</span>';
+            favBtn.title = book.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris';
+            favBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFavorite(book.id); });
+            cover.append(favBtn);
+
+            if (book._canDelete !== false) {
+                const del = document.createElement('button');
+                del.type = 'button';
+                del.className = 'book-delete-btn text-slate-300 hover:text-white transition shadow';
+                del.setAttribute('aria-label', 'Supprimer');
+                del.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+                del.addEventListener('click', () => deleteBook(book.id, book.title));
+                cover.append(del);
+            }
+
+            const content = document.createElement('div');
+            content.className = 'book-content flex flex-col justify-between p-2.5 flex-1';
+
+            const textWrapper = document.createElement('div');
+            const h3 = document.createElement('h3');
+            h3.className = 'text-xs font-bold text-slate-900 dark:text-white break-words mb-0.5 line-clamp-1';
+            h3.textContent = book.title || 'Sans titre';
+            textWrapper.append(h3);
+
+            const pAuthor = document.createElement('p');
+            pAuthor.className = 'text-[10px] text-slate-400 mb-1 font-medium line-clamp-1';
+            pAuthor.textContent = 'Par ' + (book.author || 'Inconnu');
+            textWrapper.append(pAuthor);
+
+            const ratingWrap = document.createElement('button');
+            ratingWrap.type = 'button';
+            ratingWrap.className = 'flex items-center gap-1 text-[10px] text-amber-400 font-semibold mb-1 hover:underline';
+            const avgStars = book.rating > 0 ? '★'.repeat(Math.round(book.rating)) : '☆☆☆☆☆';
+            ratingWrap.innerHTML = `<span>${avgStars}</span> <span class="text-slate-400 font-normal">(${book.rating || '0.0'})</span> <span class="text-teal-400 ml-0.5">💬 ${book.comments_count ?? (book.comments?.length || 0)}</span>`;
+            ratingWrap.addEventListener('click', () => openReviewsModal(book.id));
+            textWrapper.append(ratingWrap);
+
+            const pDesc = document.createElement('p');
+            pDesc.className = 'book-desc text-slate-600 dark:text-slate-300 text-[10px] mb-1.5 break-words line-clamp-2 leading-tight';
+            pDesc.textContent = book.description || 'Pas de description.';
+            textWrapper.append(pDesc);
+
+            const stats = document.createElement('div');
+            stats.className = 'text-[9px] text-slate-400 mb-1.5 flex items-center gap-1';
+            stats.innerHTML = `<svg class="w-3 h-3 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>${book.downloads || 0} téléchargement(s)</span>`;
+            textWrapper.append(stats);
+
+            content.append(textWrapper);
+
+            const actions = document.createElement('div');
+            actions.className = 'book-actions flex gap-1 mt-auto pt-1.5 border-t border-slate-100 dark:border-slate-800';
+
+            const open = document.createElement('a');
+            open.href = book.direct_url || '#';
+            open.target = '_blank';
+            open.rel = 'noopener noreferrer';
+            open.className = 'flex-1 bg-slate-100 dark:bg-[#0b1120] hover:bg-teal-600 text-slate-700 dark:text-slate-200 hover:text-white text-[10px] font-semibold py-1 px-2 rounded-none transition flex items-center justify-center gap-1 border border-slate-200/50 dark:border-slate-800';
+            open.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> <span>Ouvrir</span>';
+            open.addEventListener('click', () => { incrementDownloads(book.id); });
+            actions.append(open);
+
+            const dl = document.createElement('button');
+            dl.type = 'button';
+            dl.className = 'bg-slate-100 dark:bg-[#0b1120] hover:bg-teal-600 text-slate-700 dark:text-slate-200 hover:text-white text-[10px] font-semibold py-1 px-2.5 rounded-none transition flex items-center justify-center border border-slate-200/50 dark:border-slate-800';
+            dl.title = 'Télécharger';
+            dl.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>';
+            dl.addEventListener('click', () => triggerDownload(book));
+            actions.append(dl);
+
+            content.append(actions);
+            card.append(cover);
+            card.append(content);
+
+            card.addEventListener('dblclick', (e) => {
+                if (e.target.closest('button, a, input, select, textarea')) return;
+                e.preventDefault();
+                toggleFavorite(book.id);
+            });
+
+            if (favFlashId === book.id) {
+                card.classList.add('fav-pop');
+                favFlashId = null;
+            }
+
+            return card;
+        }
+
+        function renderCategoryChips(books) {
+            const container = $('categoryChips');
+            const categories = ['TOUT', '❤️ Favoris', ...new Set(books.map(b => b.category).filter(Boolean))];
+
+            container.textContent = '';
+            for (const cat of categories) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isActive = currentCategoryFilter === cat;
+                btn.className = 'whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition ' +
+                    (isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-600/30' : 'bg-slate-100 dark:bg-[#0b1120] text-slate-400 hover:text-white border border-slate-200/50 dark:border-slate-800');
+                btn.textContent = cat;
+                btn.addEventListener('click', () => {
+                    currentCategoryFilter = cat;
+                    displayedCount = PAGE_SIZE;
+                    renderBooks();
+                });
+                container.append(btn);
+            }
+        }
+
+        function renderBooks() {
+            const allBooks = booksCache;
+            renderCategoryChips(allBooks);
+
+            const grid = $('booksGrid');
+            const counter = $('bookCount');
+            const sentinel = $('infiniteScrollSentinel');
+
+            const query = currentSearchQuery.toLowerCase().trim();
+            
+            let filtered = allBooks.filter(book => {
+                let matchesCat = true;
+                if (currentCategoryFilter === '❤️ Favoris') {
+                    matchesCat = !!book.favorite;
+                } else if (currentCategoryFilter !== 'TOUT') {
+                    matchesCat = book.category === currentCategoryFilter;
+                }
+
+                const matchesRating = (book.rating || 0) >= currentMinRating;
+
+                const matchesQuery = !query || 
+                    (book.title && book.title.toLowerCase().includes(query)) ||
+                    (book.author && book.author.toLowerCase().includes(query)) ||
+                    (book.description && book.description.toLowerCase().includes(query));
+
+                return matchesCat && matchesRating && matchesQuery;
+            });
+
+            filtered.sort((a, b) => {
+                if (currentSort === 'popular') return (b.downloads || 0) - (a.downloads || 0);
+                if (currentSort === 'rating') return (b.rating || 0) - (a.rating || 0);
+                if (currentSort === 'alpha') return String(a.title || '').localeCompare(String(b.title || ''));
+                return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+            });
+
+            filteredBooksCache = filtered;
+
+            grid.textContent = '';
+            counter.textContent = filtered.length ? filtered.length + (filtered.length > 1 ? ' ressources' : ' ressource') : '0 ressource';
+
+            if (filtered.length === 0) {
+                sentinel.classList.add('hidden');
+                const p = document.createElement('p');
+                p.className = 'text-slate-400 italic col-span-full text-center py-12 text-sm';
+                p.textContent = currentCategoryFilter === '❤️ Favoris' ? 'Aucun favori pour le moment. Cliquez sur le cœur d\'un livre pour l\'ajouter !' : 'Aucun livre ne correspond à vos critères de recherche.';
+                grid.append(p);
+                return;
+            }
+
+            const paginatedBooks = filtered.slice(0, displayedCount);
+
+            const frag = document.createDocumentFragment();
+            for (const book of paginatedBooks) frag.append(createBookCard(book));
+            grid.append(frag);
+
+            if (displayedCount < filtered.length) {
+                sentinel.classList.remove('hidden');
+            } else {
+                sentinel.classList.add('hidden');
+            }
+
+            for (const book of paginatedBooks) ensureCover(book);
+        }
+
+        function initInfiniteScroll() {
+            const sentinel = $('infiniteScrollSentinel');
+            if (!sentinel) return;
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (displayedCount < filteredBooksCache.length) {
+                            displayedCount += PAGE_SIZE;
+                            renderBooks();
+                        }
+                    }
+                });
+            }, { rootMargin: '200px' });
+
+            observer.observe(sentinel);
+        }
+
+        /* =========================================================
+           MODAL AVIS
+           ========================================================= */
+        async function openReviewsModal(bookId) {
+            const book = booksCache.find(b => b.id === bookId);
+            if (!book) return;
+
+            $('modalBookId').value = book.id;
+            $('modalBookTitle').textContent = 'Avis : ' + book.title;
+            selectedRating = 5;
+            updateStarPickerUI();
+
+            const list = $('modalCommentsList');
+            list.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Chargement…</p>';
+            $('reviewsModal').classList.remove('hidden');
+
+            const comments = await loadComments(bookId);
+            renderCommentsList(comments);
+        }
+
+        function closeReviewsModal() {
+            $('reviewsModal').classList.add('hidden');
+            $('reviewForm').reset();
+        }
+
+        function renderCommentsList(comments) {
+            const list = $('modalCommentsList');
+            list.textContent = '';
+            if (!comments || comments.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'text-xs text-slate-400 italic text-center py-6';
+                p.textContent = 'Aucun avis pour le moment. Soyez le premier à en laisser un !';
+                list.append(p);
+                return;
+            }
+
+            for (const c of comments) {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-50 dark:bg-[#0b1120] p-3 rounded-xl border border-slate-200/50 dark:border-slate-800 text-xs space-y-1';
+                const header = document.createElement('div');
+                header.className = 'flex items-center justify-between';
+                header.innerHTML = `<span class="font-bold text-slate-900 dark:text-white">${escapeHtml(c.author)}</span> <span class="text-amber-400 font-medium">${'★'.repeat(c.rating)}${'☆'.repeat(5 - c.rating)}</span>`;
+                div.append(header);
+                const text = document.createElement('p');
+                text.className = 'text-slate-600 dark:text-slate-300 break-words leading-relaxed';
+                text.textContent = c.text;
+                div.append(text);
+                list.append(div);
+            }
+        }
+
+        function updateStarPickerUI() {
+            const stars = $('starPicker').querySelectorAll('span');
+            stars.forEach((star, idx) => {
+                if (idx < selectedRating) {
+                    star.className = 'text-amber-400 transition-colors';
+                } else {
+                    star.className = 'text-slate-700 transition-colors';
+                }
+            });
+        }
+
+        async function handleReviewSubmit(e) {
+            e.preventDefault();
+            const bookId = $('modalBookId').value;
+            const author = $('commentAuthor').value.trim();
+            const text   = $('commentText').value.trim();
+
+            if (!author || !text) { showToast('Veuillez remplir tous les champs.', 'error'); return; }
+
+            const { error } = await sb.from('comments').insert({
+                book_id: bookId,
+                user_id: currentUserId,
+                author,
+                text,
+                rating: selectedRating
+            });
+
+            if (error) { showToast('Publication impossible.', 'error'); return; }
+
+            $('commentText').value = '';
+            const comments = await loadComments(bookId);
+            renderCommentsList(comments);
+            await loadBooks();
+            showToast('Avis publié avec succès !');
+        }
+
+        /* =========================================================
+           FORMULAIRE : SOUMISSION
+           ========================================================= */
+        function showLinkError(message) {
+            const el = $('linkError');
+            if (message) { el.textContent = message; el.classList.remove('hidden'); }
+            else { el.textContent = ''; el.classList.add('hidden'); }
+        }
+
+        function handleCategoryChange() {
+            const select = $('categorySelect');
+            const customInput = $('categoryCustom');
+            if (select.value === 'Autre...') {
+                customInput.classList.remove('hidden');
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+
+        function getSelectedCategory() {
+            const select = $('categorySelect');
+            const customInput = $('categoryCustom');
+            return select.value === 'Autre...' ? customInput.value.trim() : select.value;
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const title = $('title').value.trim();
+            const author = $('author').value.trim();
+            const category = getSelectedCategory();
+            const desc = $('description').value.trim();
+            const link = $('link').value.trim();
+
+            if (!title || !author) { showToast('Titre et auteur obligatoires.', 'error'); return; }
+            if (!category) { showToast('Catégorie requise.', 'error'); return; }
+
+            const info = analyzeLink(link);
+            if (!info.ok) { showLinkError(info.error); $('link').focus(); return; }
+            showLinkError('');
+
+            const coverUrlRaw = $('coverUrl').value.trim();
+            const autoPdfCover = $('autoPdfCover').checked;
+            let coverUrlFinal = null;
+            let coverRatioFinal = null;
+            let coverDataFinal = null;
+            let coverSourceFinal = null;
+
+            if (pendingCoverImage) {
+                coverDataFinal = pendingCoverImage.data;
+                coverRatioFinal = pendingCoverImage.ratio;
+                coverSourceFinal = 'custom';
+            } else if (coverUrlRaw) {
+                let u;
+                try { u = new URL(coverUrlRaw); } catch {
+                    showToast('URL de couverture invalide.', 'error');
+                    $('coverUrl').focus(); return;
+                }
+                if (u.protocol !== 'https:' && u.protocol !== 'http:') {
+                    showToast('L\'URL de couverture doit commencer par http:// ou https://', 'error');
+                    $('coverUrl').focus(); return;
+                }
+                if (pendingCoverUrl && pendingCoverUrl.url === coverUrlRaw) {
+                    coverRatioFinal = pendingCoverUrl.ratio;
+                } else {
+                    coverRatioFinal = clampRatio(await getImageRatio(coverUrlRaw)) || A4_RATIO_NUM;
+                }
+                coverUrlFinal = u.href;
+                coverSourceFinal = 'url';
+            }
+
+            // Upload couverture dans le Storage
+            let cover_url  = coverUrlFinal;
+            let cover_path = null;
+            if (coverDataFinal) {
+                try {
+                    const up = await uploadCoverDataUrl(coverDataFinal);
+                    cover_url  = up.url;
+                    cover_path = up.path;
+                } catch (err) {
+                    console.error(err);
+                    showToast('Upload de la couverture impossible.', 'error');
+                    return;
+                }
+            }
+
+            const insertRow = {
+                user_id:        currentUserId,
+                title,
+                author,
+                category,
+                description:    desc,
+                kind:           info.kind,
+                file_id:        info.fileId || null,
+                direct_url:     info.directUrl,
+                preview_url:    info.previewUrl,
+                thumb_url:      info.thumbUrl,
+                cover_url:      cover_url,
+                cover_ratio:    coverRatioFinal,
+                cover_source:   coverSourceFinal,
+                auto_pdf_cover: autoPdfCover
+            };
+            if (cover_path) insertRow.cover_path = cover_path;
+
+            const { data, error } = await sb
+                .from('books')
+                .insert(insertRow)
+                .select('*, comments(count)')
+                .single();
+
+            if (error) {
+                console.error(error);
+                showToast('Publication impossible : ' + error.message, 'error');
+                return;
+            }
+
+            booksCache.unshift(rowToBook(data));
+
+            // Reset du formulaire
+            $('bookForm').reset();
+            $('categoryCustom').classList.add('hidden');
+            $('categoryCustom').required = false;
+            $('autoPdfCover').checked = false;
+            pendingCoverImage = null;
+            pendingCoverUrl   = null;
+            const errEl = $('coverUrlError');
+            errEl.classList.add('hidden'); errEl.textContent = '';
+            updateCoverPreview();
+
+            displayedCount = PAGE_SIZE;
+            renderBooks();
+            showToast('Livre publié avec succès !');
+            switchTab('bibliotheque');
+        }
+
+        /* =========================================================
+           REALTIME
+           ========================================================= */
+        function subscribeRealtime() {
+            if (realtimeChannel) sb.removeChannel(realtimeChannel);
+
+            realtimeChannel = sb.channel('biblio-live')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'books' },
+                    () => {
+                        clearTimeout(realtimeReloadTimer);
+                        realtimeReloadTimer = setTimeout(loadBooks, 400);
+                    })
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'comments' },
+                    (payload) => {
+                        const bid = payload.new?.book_id || payload.old?.book_id;
+                        if (bid) commentsCache.delete(bid);
+                        clearTimeout(realtimeReloadTimer);
+                        realtimeReloadTimer = setTimeout(loadBooks, 400);
+                    })
+                .subscribe();
+        }
+
+        /* =========================================================
+           BOOTSTRAP SUPABASE
+           ========================================================= */
+        async function bootstrapSupabase() {
+            if (!window.supabase) {
+                showToast('SDK Supabase introuvable.', 'error');
+                return false;
+            }
+
+            sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+            });
+
+            // Session existante ou création d'un compte anonyme
+            let { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                const { error } = await sb.auth.signInAnonymously();
+                if (error) {
+                    console.error(error);
+                    showToast('Auth anonyme désactivée côté Supabase.', 'error');
+                    return false;
+                }
+                ({ data: { session } } = await sb.auth.getSession());
+            }
+
+            currentUserId = session?.user?.id || null;
+            if (!currentUserId) { showToast('Session introuvable.', 'error'); return false; }
+
+            // Profil
+            const { data: prof } = await sb.from('profiles')
+                .select('display_name').eq('id', currentUserId).maybeSingle();
+            if (prof?.display_name) localStorage.setItem('profileName', prof.display_name);
+
+            await migrateLocalStorageToSupabase();
+            await loadFavorites();
+            await loadBooks();
+            subscribeRealtime();
+            return true;
+        }
+
+        /* =========================================================
+           INIT
+           ========================================================= */
+        async function init() {
+            initTheme();
+
+            $('themeToggleBtn').addEventListener('click', toggleTheme);
+            $('exportBtn').addEventListener('click', exportLibrary);
+            $('importBtn').addEventListener('click', () => $('importFile').click());
+            $('importFile').addEventListener('change', importLibrary);
+
+            $('bookForm').addEventListener('submit', handleSubmit);
+            $('link').addEventListener('input', () => showLinkError(''));
+
+            $('coverImage').addEventListener('change', handleCoverChange);
+
+            let coverUrlTimer = null;
+            $('coverUrl').addEventListener('input', (e) => {
+                clearTimeout(coverUrlTimer);
+                const value = e.target.value;
+                coverUrlTimer = setTimeout(() => handleCoverUrlChange(value), 400);
+            });
+
+            $('coverClear').addEventListener('click', handleCoverClear);
+            $('categorySelect').addEventListener('change', handleCategoryChange);
+
+            $('closeModalBtn').addEventListener('click', closeReviewsModal);
+            $('reviewsModal').addEventListener('click', (e) => {
+                if (e.target === $('reviewsModal')) closeReviewsModal();
+            });
+            $('reviewForm').addEventListener('submit', handleReviewSubmit);
+
+            $('starPicker').querySelectorAll('span').forEach((star, idx) => {
+                star.addEventListener('click', () => { selectedRating = idx + 1; updateStarPickerUI(); });
+            });
+
+            $('searchInput').addEventListener('input', (e) => {
+                currentSearchQuery = e.target.value;
+                displayedCount = PAGE_SIZE;
+                renderBooks();
+            });
+            $('minRatingFilter').addEventListener('change', (e) => {
+                currentMinRating = Number(e.target.value);
+                displayedCount = PAGE_SIZE;
+                renderBooks();
+            });
+            $('sortSelect').addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                displayedCount = PAGE_SIZE;
+                renderBooks();
+            });
+
+            // Profil → Supabase
+            $('saveProfileBtn').addEventListener('click', async () => {
+                const name = $('userNameInput').value.trim() || 'Membre solidaire';
+                localStorage.setItem('profileName', name);
+                $('profileNameDisplay').textContent = name;
+
+                const { error } = await sb.from('profiles')
+                    .upsert({ id: currentUserId, display_name: name }, { onConflict: 'id' });
+
+                if (error) { showToast('Enregistrement distant impossible.', 'error'); return; }
+                updateProfileStats();
+                showToast('Profil mis à jour !');
+            });
+
+            const savedView = localStorage.getItem('libraryViewMode');
+            if (savedView && ['grid', 'list', 'compact'].includes(savedView)) currentView = savedView;
+
+            $('viewGridBtn').addEventListener('click',    () => setView('grid'));
+            $('viewListBtn').addEventListener('click',    () => setView('list'));
+            $('viewCompactBtn').addEventListener('click', () => setView('compact'));
+
+            updateViewUI();
+            updateProfileStats();
+            initInfiniteScroll();
+
+            const ok = await bootstrapSupabase();
+            if (!ok) {
+                const grid = $('booksGrid');
+                grid.innerHTML = '<p class="text-red-400 text-sm col-span-full text-center py-12">' +
+                                 'Connexion au cloud impossible. Vérifiez la configuration Supabase.</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    })();
+    </script>
+</body>
+</html>
