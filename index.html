@@ -376,7 +376,6 @@
                     </div>
                 </div>
 
-                <!-- Bandeau "Convertir en compte permanent" -->
                 <div id="upgradeBanner" class="pt-4 text-left space-y-3 border-t border-slate-100 dark:border-slate-800">
                     <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
                         <div class="flex items-start gap-2.5">
@@ -403,7 +402,6 @@
                     </button>
                 </div>
 
-                <!-- Bouton déconnexion (visible seulement pour compte permanent) -->
                 <div id="signOutSection" class="pt-2 hidden">
                     <button id="signOutBtn" type="button" class="text-xs text-slate-400 hover:text-red-400 transition font-medium">
                         Se déconnecter
@@ -608,16 +606,12 @@
         const PDF_RATIO_MIN = 0.3;
         const PDF_RATIO_MAX = 3.0;
 
-        /* =========================================================
-           PAGINATION SERVEUR
-           ========================================================= */
         const SERVER_PAGE_SIZE = 30;
         let serverPage       = 0;
         let serverHasMore    = true;
         let serverIsLoading  = false;
         let initialLoadDone  = false;
 
-        /* Client-side UI pagination (par-dessus les livres déjà chargés) */
         let displayedCount = 12;
         const UI_PAGE_SIZE = 12;
 
@@ -703,7 +697,7 @@
         }
 
         /* =========================================================
-           CHARGEMENT PAGINÉ DEPUIS SUPABASE
+           CHARGEMENT PAGINÉ
            ========================================================= */
         async function loadFavorites() {
             favoritesSet.clear();
@@ -713,10 +707,6 @@
             (data || []).forEach(f => favoritesSet.add(f.book_id));
         }
 
-        /**
-         * Charge la page suivante depuis le serveur et l'ajoute au cache.
-         * @param {boolean} reset - Si true, vide le cache et recommence à la page 0.
-         */
         async function loadBooksPage(reset) {
             if (serverIsLoading) return;
             if (!reset && !serverHasMore) return;
@@ -1267,7 +1257,6 @@
             const initials = savedName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
             $('profileAvatarInitials').textContent = initials || 'MS';
 
-            // Statut du compte
             const statusEl = $('profileAccountStatus');
             if (isAnonymousUser) {
                 statusEl.innerHTML = '<span class="pulse-dot"></span><span>Compte anonyme</span>';
@@ -1290,7 +1279,6 @@
             requestAnimationFrame(() => { renderQueued = false; renderBooks(); });
         }
 
-        /* ---- SKELETON LOADING ---- */
         function renderSkeletons(count) {
             const grid = $('booksGrid');
             grid.textContent = '';
@@ -1366,7 +1354,6 @@
             favBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFavorite(book.id); });
             cover.append(favBtn);
 
-            // Bouton édition (uniquement pour les livres de l'utilisateur)
             if (book._canDelete !== false) {
                 const editBtn = document.createElement('button');
                 editBtn.type = 'button';
@@ -1476,7 +1463,6 @@
             const counter = $('bookCount');
             const sentinel = $('infiniteScrollSentinel');
 
-            // ÉTAT INITIAL : SKELETON
             if (!initialLoadDone) {
                 renderSkeletons(6);
                 counter.textContent = 'Chargement…';
@@ -1534,9 +1520,6 @@
             for (const book of paginatedBooks) ensureCover(book);
         }
 
-        /* =========================================================
-           INFINITE SCROLL (client-side UI + pagination serveur)
-           ========================================================= */
         function initInfiniteScroll() {
             const sentinel = $('infiniteScrollSentinel');
             if (!sentinel) return;
@@ -1545,14 +1528,11 @@
                 entries.forEach(async entry => {
                     if (!entry.isIntersecting) return;
                     if (serverIsLoading) return;
-
-                    // 1) S'il reste des livres non affichés en mémoire, on en affiche plus.
                     if (displayedCount < filteredBooksCache.length) {
                         displayedCount += UI_PAGE_SIZE;
                         renderBooks();
                         return;
                     }
-                    // 2) Sinon, si le serveur a encore des pages, on les charge.
                     if (serverHasMore) {
                         await loadBooksPage(false);
                         displayedCount += UI_PAGE_SIZE;
@@ -1630,7 +1610,6 @@
             $('commentText').value = '';
             const comments = await loadComments(bookId);
             renderCommentsList(comments);
-            // Mettre à jour le compteur local sans recharger tout
             const b = booksCache.find(x => x.id === bookId);
             if (b) { b.comments_count = comments.length; }
             renderBooks();
@@ -1638,7 +1617,7 @@
         }
 
         /* =========================================================
-           MODAL ÉDITION LIVRE
+           MODAL ÉDITION
            ========================================================= */
         function openEditModal(bookId) {
             const book = booksCache.find(b => b.id === bookId);
@@ -1674,7 +1653,6 @@
                 return;
             }
 
-            // Validation URL couverture si fournie
             let coverUrlToSave = book.cover_url;
             let coverSourceToSave = book.cover_source;
             let coverRatioToSave = book.cover_ratio;
@@ -1693,7 +1671,6 @@
                 coverSourceToSave = 'url';
                 coverRatioToSave = clampRatio(await getImageRatio(newCoverUrl)) || A4_RATIO_NUM;
             } else if (!newCoverUrl && book.cover_source === 'url') {
-                // L'utilisateur a effacé l'URL
                 coverUrlToSave = null;
                 coverSourceToSave = null;
                 coverRatioToSave = null;
@@ -1716,7 +1693,6 @@
                 return;
             }
 
-            // Mise à jour du cache local
             Object.assign(book, {
                 title: newTitle,
                 author: newAuthor,
@@ -1726,7 +1702,6 @@
                 cover_source: coverSourceToSave,
                 cover_ratio: coverRatioToSave
             });
-            // Si l'URL de couverture a changé, on purge le cache d'image
             coverCache.delete(bookId);
 
             closeEditModal();
@@ -1748,6 +1723,11 @@
             $('loginModal').classList.add('hidden');
         }
 
+        /**
+         * Gère la conversion anonyme → permanent.
+         * Cas 1 : email libre → updateUser() attache l'email au compte anonyme (tout conservé).
+         * Cas 2 : email déjà utilisé → propose de se connecter à l'autre compte via magic link.
+         */
         async function handleLoginSubmit(e) {
             e.preventDefault();
             const email = $('loginEmail').value.trim();
@@ -1757,14 +1737,46 @@
             btn.disabled = true;
             btn.textContent = 'Envoi en cours…';
 
-            // updateUser() sur un compte anonyme → lie l'email au même user_id
-            // Le compte devient permanent et tous les livres/favoris sont conservés
+            // Tentative de liaison de l'email au compte anonyme actuel
             const { error } = await sb.auth.updateUser({ email });
 
             btn.disabled = false;
             btn.textContent = 'Envoyer le lien magique';
 
             if (error) {
+                const msg = (error.message || '').toLowerCase();
+                const isAlreadyUsed = msg.includes('already') || error.status === 422;
+
+                if (isAlreadyUsed) {
+                    const wantsToSignIn = window.confirm(
+                        "Cet email est déjà associé à un compte existant sur BiblioSolidaire.\n\n" +
+                        "OK = Se connecter à ce compte existant (⚠️ vos livres et favoris actuels du compte anonyme seront perdus)\n" +
+                        "Annuler = Utiliser une autre adresse email"
+                    );
+                    if (!wantsToSignIn) return;
+
+                    // Déconnexion du compte anonyme
+                    await sb.auth.signOut();
+                    localStorage.removeItem('profileName');
+
+                    // Envoi d'un lien magique pour se connecter au compte existant
+                    const { error: otpErr } = await sb.auth.signInWithOtp({
+                        email,
+                        options: { shouldCreateUser: false }
+                    });
+
+                    if (otpErr) {
+                        showToast('Erreur : ' + otpErr.message, 'error');
+                        return;
+                    }
+
+                    $('loginSentTo').textContent = email;
+                    $('loginStep1').classList.add('hidden');
+                    $('loginStep2').classList.remove('hidden');
+                    showToast('Lien de connexion envoyé ! Vérifiez vos emails.');
+                    return;
+                }
+
                 console.error(error);
                 showToast('Erreur : ' + error.message, 'error');
                 return;
@@ -1783,7 +1795,7 @@
         }
 
         /* =========================================================
-           FORMULAIRE PRINCIPAL : SOUMISSION
+           FORMULAIRE PRINCIPAL
            ========================================================= */
         function showLinkError(message) {
             const el = $('linkError');
@@ -1928,7 +1940,6 @@
             isAnonymousUser = session?.user?.is_anonymous === true || (!currentUserEmail && !session?.user?.phone);
             if (!currentUserId) { showToast('Session introuvable.', 'error'); return false; }
 
-            // Détecter les changements de session (retour du lien magique)
             sb.auth.onAuthStateChange((event, sess) => {
                 if (!sess) return;
                 currentUserId = sess.user?.id || currentUserId;
@@ -1985,13 +1996,11 @@
                 star.addEventListener('click', () => { selectedRating = idx + 1; updateStarPickerUI(); });
             });
 
-            // Édition
             $('closeEditBtn').addEventListener('click', closeEditModal);
             $('cancelEditBtn').addEventListener('click', closeEditModal);
             $('editModal').addEventListener('click', (e) => { if (e.target === $('editModal')) closeEditModal(); });
             $('editForm').addEventListener('submit', handleEditSubmit);
 
-            // Login
             $('upgradeBtn').addEventListener('click', openLoginModal);
             $('closeLoginBtn').addEventListener('click', closeLoginModal);
             $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) closeLoginModal(); });
@@ -2002,7 +2011,6 @@
             });
             $('signOutBtn').addEventListener('click', handleSignOut);
 
-            // Recherche avec debounce
             let searchTimer = null;
             $('searchInput').addEventListener('input', (e) => {
                 clearTimeout(searchTimer);
@@ -2038,7 +2046,6 @@
             updateProfileStats();
             initInfiniteScroll();
 
-            // Afficher les skeletons immédiatement
             renderSkeletons(6);
 
             const ok = await bootstrapSupabase();
