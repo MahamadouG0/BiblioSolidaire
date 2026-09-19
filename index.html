@@ -4,197 +4,103 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bibliothèque Solidaire & Partage</title>
-    <!-- PWA Manifest intégré -->
     <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Biblioth%C3%A8que%20Solidaire%22%2C%22short_name%22%3A%22BiblioSolidaire%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f172a%22%2C%22theme_color%22%3A%22%230d9488%22%2C%22icons%22%3A%5B%5D%7D'>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
-    <!-- PDF.js : rendu local de la 1re page des PDF -->
+    <script>tailwind.config = { darkMode: 'class' }</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
-    <!-- SDK Supabase (UMD → window.supabase) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
     <style>
-        /* ============ VUE GRILLE (par défaut) — cartes A4, coins droits ============ */
-        .view-grid {
-            display: grid;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-            gap: 1.25rem;
-        }
-        @media (min-width: 640px) {
-            .view-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-        @media (min-width: 1024px) {
-            .view-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        }
+        .view-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 1.25rem; }
+        @media (min-width: 640px) { .view-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .view-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         .view-grid .book-card { border-radius: 0 !important; }
         .view-grid .book-cover-wrapper { border-radius: 0 !important; }
 
-        /* ============ VUE LISTE ============ */
-        .view-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .view-list .book-card {
-            display: flex;
-            flex-direction: row;
-            align-items: stretch;
-            overflow: hidden;
-            padding: 0 !important;
-            border-radius: 0 !important;
-        }
-        .view-list .book-cover-wrapper {
-            width: 30%;
-            flex-shrink: 0;
-            margin-bottom: 0 !important;
-            border-radius: 0 !important;
-            aspect-ratio: auto !important;
-            height: auto;
-            position: relative;
-        }
-        .view-list .book-cover-wrapper img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .view-list .book-cover-wrapper img.pdf-cover-img {
-            object-fit: contain;
-        }
-        .view-list .book-content {
-            width: 70%;
-            padding: 0.65rem 0.75rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .view-list .book-category-badge {
-            position: absolute;
-            top: 0.4rem;
-            left: 0.4rem;
-            z-index: 10;
-            font-size: 0.55rem;
-            padding: 0.1rem 0.35rem;
-        }
-        .view-list .book-delete-btn {
-            position: absolute;
-            top: 0.4rem;
-            right: 0.4rem;
-            z-index: 10;
-            background-color: rgba(15, 23, 42, 0.75);
-            color: white;
-            border-radius: 50%;
-            width: 1.5rem;
-            height: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            backdrop-filter: blur(4px);
-        }
+        .view-list { display: flex; flex-direction: column; gap: 1rem; }
+        .view-list .book-card { display: flex; flex-direction: row; align-items: stretch; overflow: hidden; padding: 0 !important; border-radius: 0 !important; }
+        .view-list .book-cover-wrapper { width: 30%; flex-shrink: 0; margin-bottom: 0 !important; border-radius: 0 !important; aspect-ratio: auto !important; height: auto; position: relative; }
+        .view-list .book-cover-wrapper img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .view-list .book-cover-wrapper img.pdf-cover-img { object-fit: contain; }
+        .view-list .book-content { width: 70%; padding: 0.65rem 0.75rem; display: flex; flex-direction: column; justify-content: space-between; }
+        .view-list .book-category-badge { position: absolute; top: 0.4rem; left: 0.4rem; z-index: 10; font-size: 0.55rem; padding: 0.1rem 0.35rem; }
+        .view-list .book-delete-btn { position: absolute; top: 0.4rem; right: 0.4rem; z-index: 10; background-color: rgba(15, 23, 42, 0.75); color: white; border-radius: 50%; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; backdrop-filter: blur(4px); }
 
-        /* Ratio de couverture dynamique */
-        .book-cover-wrapper {
-            aspect-ratio: var(--cover-ratio, 0.707);
-            border-radius: 0 !important;
-        }
+        .book-cover-wrapper { aspect-ratio: var(--cover-ratio, 0.707); border-radius: 0 !important; }
 
-        /* ============ VUE COMPACTE ============ */
-        .view-compact {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0.85rem;
-        }
-        @media (min-width: 768px) {
-            .view-compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        }
-        @media (min-width: 1280px) {
-            .view-compact { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        }
-        .view-compact .book-card {
-            padding: 0 !important;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-radius: 0 !important;
-        }
-        .view-compact .book-cover-wrapper {
-            aspect-ratio: var(--cover-ratio, 0.75) !important;
-            margin-bottom: 0 !important;
-            border-radius: 0 !important;
-        }
-        .view-compact .book-content {
-            padding: 0.5rem !important;
-        }
-        .view-compact h3 {
-            font-size: 0.75rem !important;
-            line-height: 1rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            font-weight: 600;
-        }
+        .view-compact { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
+        @media (min-width: 768px) { .view-compact { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (min-width: 1280px) { .view-compact { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .view-compact .book-card { padding: 0 !important; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0 !important; }
+        .view-compact .book-cover-wrapper { aspect-ratio: var(--cover-ratio, 0.75) !important; margin-bottom: 0 !important; border-radius: 0 !important; }
+        .view-compact .book-content { padding: 0.5rem !important; }
+        .view-compact h3 { font-size: 0.75rem !important; line-height: 1rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; font-weight: 600; }
         .view-compact p.book-desc { display: none; }
-        .view-compact .book-category-badge {
-            font-size: 0.5rem;
-            padding: 0.1rem 0.3rem;
-        }
+        .view-compact .book-category-badge { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
         .view-compact .book-delete-btn { display: none; }
-        .view-compact .book-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.2rem;
-            margin-top: 0.35rem;
-        }
-        .view-compact .book-actions a, 
-        .view-compact .book-actions button {
-            font-size: 0.6rem !important;
-            padding: 0.25rem 0.15rem !important;
-            width: 100%;
-            justify-content: center;
-            border-radius: 0 !important;
-        }
+        .view-compact .book-edit-btn { display: none; }
+        .view-compact .book-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem; margin-top: 0.35rem; }
+        .view-compact .book-actions a, .view-compact .book-actions button { font-size: 0.6rem !important; padding: 0.25rem 0.15rem !important; width: 100%; justify-content: center; border-radius: 0 !important; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        button, a {
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-        }
-        button:active, a:active {
-            transform: scale(0.97);
-            transition: transform 0.1s ease;
-        }
+        button, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        button:active, a:active { transform: scale(0.97); transition: transform 0.1s ease; }
 
         @keyframes cardPop {
             0%   { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.65); transform: scale(1); }
             45%  { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); transform: scale(1.02); }
             100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); transform: scale(1); }
         }
-        .book-card.fav-pop {
-            animation: cardPop 0.5s ease;
-        }
-        .book-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .book-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
-        }
+        .book-card.fav-pop { animation: cardPop 0.5s ease; }
+        .book-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .book-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2); }
 
         .book-card { -webkit-user-select: none; user-select: none; }
         .book-card p, .book-card h3 { -webkit-user-select: text; user-select: text; }
+
+        /* ====== SKELETON LOADING ====== */
+        @keyframes shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position: 400px 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #1e293b 0px, #334155 40px, #1e293b 80px);
+            background-size: 600px 100%;
+            animation: shimmer 1.4s infinite linear;
+            border-radius: 4px;
+        }
+        .skeleton-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(148,163,184,0.12);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .skeleton-cover { width: 100%; aspect-ratio: 0.707; }
+        .skeleton-line { height: 10px; margin: 6px 10px; }
+        .skeleton-line.w-3\/4 { width: 75%; }
+        .skeleton-line.w-1\/2 { width: 50%; }
+        .skeleton-line.w-2\/3 { width: 66%; }
+        .skeleton-line.h-8 { height: 26px; }
+
+        /* ====== BADGE ANONYME ====== */
+        .pulse-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #fbbf24;
+            animation: pulseDot 1.8s ease-in-out infinite;
+        }
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: .5; transform: scale(1.4); }
+        }
     </style>
 </head>
 <body class="bg-[#0b1120] text-slate-100 min-h-screen selection:bg-teal-500 selection:text-white transition-colors duration-300 pb-24 lg:pb-12">
     
-    <!-- Barre de navigation supérieure (Glassmorphism) -->
+    <!-- NAVIGATION -->
     <nav class="sticky top-0 z-40 bg-white/80 dark:bg-[#0b1120]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm">
         <div class="container mx-auto px-4 max-w-7xl h-16 flex items-center justify-between">
             <a href="#" onclick="switchTab('accueil'); return false;" class="flex items-center gap-3 font-bold text-teal-600 dark:text-teal-400 text-base sm:text-lg group">
@@ -327,9 +233,7 @@
                                 📁 Importer un fichier <span class="text-teal-400">(prioritaire)</span>
                             </label>
                             <input type="file" id="coverImage" accept="image/*"
-                                   class="block w-full text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer
-                                          file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold
-                                          file:bg-teal-600 file:text-white hover:file:bg-teal-500 transition">
+                                   class="block w-full text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl cursor-pointer file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-600 file:text-white hover:file:bg-teal-500 transition">
                         </div>
 
                         <div class="flex items-center gap-3">
@@ -365,13 +269,7 @@
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer shrink-0" aria-label="Activer la conversion PDF">
                                 <input type="checkbox" id="autoPdfCover" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-700 peer-checked:bg-teal-600 rounded-full
-                                            peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/40
-                                            transition-colors
-                                            after:content-[''] after:absolute after:top-0.5 after:left-0.5
-                                            after:bg-white after:rounded-full after:h-5 after:w-5
-                                            after:transition-all after:shadow
-                                            peer-checked:after:translate-x-5"></div>
+                                <div class="w-11 h-6 bg-slate-700 peer-checked:bg-teal-600 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500/40 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow peer-checked:after:translate-x-5"></div>
                             </label>
                         </div>
                     </div>
@@ -394,8 +292,6 @@
 
             <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xl space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-                    
-                    <!-- Barre de recherche -->
                     <div class="relative md:col-span-5">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -403,8 +299,6 @@
                         <input type="text" id="searchInput" placeholder="Rechercher par titre, auteur..."
                                class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
                     </div>
-
-                    <!-- Filtre Combiné par Note Minimale -->
                     <div class="md:col-span-3">
                         <select id="minRatingFilter" aria-label="Filtrer par note minimale" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
                             <option value="0">Toutes les notes ⭐</option>
@@ -413,8 +307,6 @@
                             <option value="5">5 étoiles parfaites ⭐⭐⭐⭐⭐</option>
                         </select>
                     </div>
-
-                    <!-- Tri Combiné Avancé -->
                     <div class="md:col-span-4 flex items-center gap-3">
                         <select id="sortSelect" aria-label="Trier les livres" class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
                             <option value="recent">Tri : Plus récents</option>
@@ -423,14 +315,10 @@
                             <option value="alpha">Tri : Ordre alphabétique (A-Z)</option>
                         </select>
                     </div>
-
                 </div>
 
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <div id="categoryChips" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                        <!-- Dynamique -->
-                    </div>
-
+                    <div id="categoryChips" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1"></div>
                     <div class="flex items-center justify-between lg:justify-end gap-4 shrink-0">
                         <span id="bookCount" class="text-xs font-medium text-slate-400"></span>
                         <div class="flex items-center bg-slate-100 dark:bg-[#0b1120] rounded-xl p-1 border border-slate-200 dark:border-slate-800">
@@ -450,9 +338,11 @@
 
             <div id="booksGrid" class="view-grid gap-5"></div>
             
-            <!-- Indicateur de fin de liste / Chargement infini -->
             <div id="infiniteScrollSentinel" class="py-6 text-center text-xs text-slate-500 hidden">
-                Chargement des livres suivants...
+                <span class="inline-flex items-center gap-2">
+                    <svg class="w-4 h-4 animate-spin text-teal-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Chargement des livres suivants...
+                </span>
             </div>
         </div>
 
@@ -469,7 +359,10 @@
                 </div>
                 <div>
                     <h2 id="profileNameDisplay" class="text-lg font-bold text-slate-900 dark:text-white">Membre solidaire</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Membre actif de la communauté</p>
+                    <p id="profileAccountStatus" class="text-xs text-slate-400 mt-0.5 flex items-center justify-center gap-1.5">
+                        <span class="pulse-dot"></span>
+                        <span>Compte anonyme</span>
+                    </p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -483,7 +376,23 @@
                     </div>
                 </div>
 
-                <div class="pt-4 text-left space-y-4 border-t border-slate-100 dark:border-slate-800">
+                <!-- Bandeau "Convertir en compte permanent" -->
+                <div id="upgradeBanner" class="pt-4 text-left space-y-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
+                        <div class="flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            <div class="flex-1">
+                                <p class="text-xs font-semibold text-amber-300">Sauvegardez votre compte</p>
+                                <p class="text-[11px] text-amber-200/80 mt-0.5 leading-snug">Votre compte est anonyme. Ajoutez un email pour retrouver vos livres et favoris sur tous vos appareils.</p>
+                            </div>
+                        </div>
+                        <button id="upgradeBtn" type="button" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">
+                            Devenir membre permanent
+                        </button>
+                    </div>
+                </div>
+
+                <div id="userInfoSection" class="pt-4 text-left space-y-4 border-t border-slate-100 dark:border-slate-800">
                     <div class="space-y-1">
                         <label for="userNameInput" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Nom d'affichage</label>
                         <input type="text" id="userNameInput" value="Membre solidaire"
@@ -493,12 +402,19 @@
                         Enregistrer les modifications
                     </button>
                 </div>
+
+                <!-- Bouton déconnexion (visible seulement pour compte permanent) -->
+                <div id="signOutSection" class="pt-2 hidden">
+                    <button id="signOutBtn" type="button" class="text-xs text-slate-400 hover:text-red-400 transition font-medium">
+                        Se déconnecter
+                    </button>
+                </div>
             </div>
         </div>
 
     </div>
 
-    <!-- Barre de navigation mobile en bas (Glassmorphism) -->
+    <!-- Barre de navigation mobile -->
     <div class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-[#0b1120]/90 backdrop-blur-xl border-t border-slate-200/60 dark:border-slate-800/60 px-4 py-2.5 flex items-center justify-around shadow-2xl">
         <button onclick="switchTab('accueil')" id="navBtnAccueil" class="flex flex-col items-center gap-1 text-teal-400 transition py-1 px-4">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -514,7 +430,7 @@
         </button>
     </div>
 
-    <!-- Modal d'Avis & Commentaires -->
+    <!-- Modal Avis -->
     <div id="reviewsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
@@ -527,9 +443,7 @@
                 </button>
             </div>
 
-            <div id="modalCommentsList" class="flex-1 overflow-y-auto space-y-3 pr-1 mb-4 max-h-60">
-                <!-- Dynamique -->
-            </div>
+            <div id="modalCommentsList" class="flex-1 overflow-y-auto space-y-3 pr-1 mb-4 max-h-60"></div>
 
             <form id="reviewForm" class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <input type="hidden" id="modalBookId">
@@ -560,9 +474,107 @@
         </div>
     </div>
 
-    <!-- Toast de notification -->
+    <!-- Modal Édition Livre -->
+    <div id="editModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Modifier le livre</h3>
+                    <p class="text-xs text-slate-400">Corrigez les informations</p>
+                </div>
+                <button id="closeEditBtn" aria-label="Fermer" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <form id="editForm" class="space-y-3.5">
+                <input type="hidden" id="editBookId">
+                <div class="space-y-1">
+                    <label for="editTitle" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Titre</label>
+                    <input type="text" id="editTitle" required maxlength="150"
+                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                </div>
+                <div class="space-y-1">
+                    <label for="editAuthor" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Auteur</label>
+                    <input type="text" id="editAuthor" required maxlength="100"
+                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                </div>
+                <div class="space-y-1">
+                    <label for="editCategory" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Catégorie</label>
+                    <input type="text" id="editCategory" required maxlength="80"
+                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                </div>
+                <div class="space-y-1">
+                    <label for="editDescription" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Description</label>
+                    <textarea id="editDescription" rows="3" maxlength="500"
+                              class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition"></textarea>
+                </div>
+                <div class="space-y-1">
+                    <label for="editCoverUrl" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">URL de la couverture (optionnel)</label>
+                    <input type="url" id="editCoverUrl" placeholder="https://..."
+                           class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                </div>
+                <div class="flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" id="cancelEditBtn" class="flex-1 bg-slate-100 dark:bg-[#0b1120] text-slate-700 dark:text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+                        Annuler
+                    </button>
+                    <button type="submit" class="flex-1 bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-teal-600/25">
+                        Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Login (conversion anonyme → permanent) -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Devenir membre permanent</h3>
+                    <p class="text-xs text-slate-400">Ajoutez un email pour sauvegarder votre compte</p>
+                </div>
+                <button id="closeLoginBtn" aria-label="Fermer" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div id="loginStep1">
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                    Vous recevrez un <strong class="text-teal-400">lien magique</strong> par email. Cliquez dessus pour confirmer votre adresse — vos livres et favoris sont automatiquement conservés.
+                </p>
+                <form id="loginForm" class="space-y-3">
+                    <div class="space-y-1">
+                        <label for="loginEmail" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Adresse email</label>
+                        <input type="email" id="loginEmail" required placeholder="vous@exemple.com"
+                               class="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-500 transition">
+                    </div>
+                    <button type="submit" id="loginSubmitBtn" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-teal-600/25 disabled:opacity-50">
+                        Envoyer le lien magique
+                    </button>
+                </form>
+            </div>
+
+            <div id="loginStep2" class="hidden text-center py-4 space-y-3">
+                <div class="w-14 h-14 mx-auto rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+                <h4 class="text-sm font-bold text-slate-900 dark:text-white">Vérifiez votre email</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Un lien de confirmation a été envoyé à<br>
+                    <strong id="loginSentTo" class="text-teal-400"></strong>
+                </p>
+                <p class="text-[11px] text-slate-500">Le lien expire dans 1 heure. Pensez à vérifier vos spams.</p>
+                <button type="button" id="loginBackBtn" class="text-xs text-teal-400 hover:underline font-semibold pt-2">
+                    Utiliser une autre adresse
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
     <div id="toast" role="status" aria-live="polite" hidden
-         class="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold shadow-2xl z-50 transition-all duration-300 border backdrop-blur-xl "
+         class="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold shadow-2xl z-50 transition-all duration-300 border backdrop-blur-xl"
          style="opacity:0;"></div>
 
     <script>
@@ -577,12 +589,11 @@
 
         let sb             = null;
         let currentUserId  = null;
+        let currentUserEmail = null;
+        let isAnonymousUser = true;
         let realtimeChannel = null;
         let realtimeReloadTimer = null;
 
-        /* =========================================================
-           CONSTANTES
-           ========================================================= */
         const LEGACY_KEY    = 'solidarity_books_v4';
         const STORAGE_KEY   = 'solidarity_books_v4';
         const ALLOWED_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
@@ -591,15 +602,25 @@
 
         const COVER_MAX_WIDTH   = 640;
         const CUSTOM_MAX_WIDTH  = 600;
-        const A4_RATIO = '210 / 297';
         const A4_RATIO_NUM = 210 / 297;
         const CUSTOM_RATIO_MIN = 0.5;
         const CUSTOM_RATIO_MAX = 1.2;
         const PDF_RATIO_MIN = 0.3;
         const PDF_RATIO_MAX = 3.0;
 
-        const PAGE_SIZE = 12;
-        let displayedCount = PAGE_SIZE;
+        /* =========================================================
+           PAGINATION SERVEUR
+           ========================================================= */
+        const SERVER_PAGE_SIZE = 30;
+        let serverPage       = 0;
+        let serverHasMore    = true;
+        let serverIsLoading  = false;
+        let initialLoadDone  = false;
+
+        /* Client-side UI pagination (par-dessus les livres déjà chargés) */
+        let displayedCount = 12;
+        const UI_PAGE_SIZE = 12;
+
         let filteredBooksCache = [];
 
         let currentSearchQuery   = '';
@@ -612,9 +633,6 @@
 
         const ratioFixAttempted = new Set();
 
-        /* =========================================================
-           CACHES LOCAUX
-           ========================================================= */
         let booksCache = [];
         const favoritesSet  = new Set();
         const commentsCache = new Map();
@@ -622,9 +640,6 @@
         const pendingCovers = new Set();
         const attemptedCovers = new Set();
 
-        /* =========================================================
-           UTILITAIRES
-           ========================================================= */
         const $ = (id) => document.getElementById(id);
 
         function uid() {
@@ -641,78 +656,54 @@
 
         function escapeHtml(str) {
             return String(str || '').replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
-        const PLACEHOLDER_COVER =
-            'data:image/svg+xml;charset=utf-8,' +
-            encodeURIComponent(
-                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 594">' +
-                '<rect width="420" height="594" fill="#0b1120"/>' +
-                '<rect x="50" y="60" width="320" height="474" rx="16" fill="#1e293b" stroke="#334155" stroke-width="3"/>' +
-                '<path d="M100 170h220M100 230h220M100 290h160" stroke="#475569" stroke-width="12" stroke-linecap="round"/>' +
-                '<text x="210" y="460" font-family="sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Aperçu indisponible</text>' +
-                '</svg>'
-            );
+        const PLACEHOLDER_COVER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 594">' +
+            '<rect width="420" height="594" fill="#0b1120"/>' +
+            '<rect x="50" y="60" width="320" height="474" rx="16" fill="#1e293b" stroke="#334155" stroke-width="3"/>' +
+            '<path d="M100 170h220M100 230h220M100 290h160" stroke="#475569" stroke-width="12" stroke-linecap="round"/>' +
+            '<text x="210" y="460" font-family="sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Aperçu indisponible</text>' +
+            '</svg>');
 
-        /* =========================================================
-           ANALYSE DE LIEN
-           ========================================================= */
         function analyzeLink(raw) {
             const trimmed = String(raw || '').trim();
             if (!trimmed) return { ok: false, error: 'Le lien est obligatoire.' };
             let url;
             try { url = new URL(trimmed); } catch { return { ok: false, error: 'Lien invalide.' }; }
             if (url.protocol !== 'https:') return { ok: false, error: 'Le lien doit utiliser HTTPS.' };
-
             const idMatch = trimmed.match(DRIVE_ID_RE);
             if (ALLOWED_HOSTS.has(url.hostname)) {
                 if (!idMatch) return { ok: false, error: "Impossible d'extraire l'identifiant du fichier Drive." };
                 const id = idMatch[1];
-                return {
-                    ok: true, kind: 'drive', fileId: id,
+                return { ok: true, kind: 'drive', fileId: id,
                     directUrl: 'https://drive.google.com/file/d/' + id + '/view',
                     previewUrl: 'https://drive.google.com/file/d/' + id + '/preview',
-                    thumbUrl: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w1200'
-                };
+                    thumbUrl: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w1200' };
             }
             return { ok: true, kind: 'external', directUrl: url.href, previewUrl: null, thumbUrl: null };
         }
 
-        /* =========================================================
-           MAPPERS
-           ========================================================= */
         function rowToBook(r) {
             return {
-                id:              r.id,
-                title:           r.title,
-                author:          r.author,
-                category:        r.category,
-                description:     r.description || '',
-                kind:            r.kind,
-                fileId:          r.file_id,
-                direct_url:      r.direct_url,
-                preview_url:     r.preview_url,
-                thumb_url:       r.thumb_url,
-                cover_url:       r.cover_url,
-                cover_data:      null,
-                cover_ratio:     r.cover_ratio != null ? Number(r.cover_ratio) : null,
-                cover_source:    r.cover_source,
-                auto_pdf_cover:  !!r.auto_pdf_cover,
-                downloads:       r.downloads || 0,
-                rating:          Number(r.rating) || 0,
-                favorite:        favoritesSet.has(r.id),
-                comments:        commentsCache.get(r.id) || [],
-                comments_count:  Array.isArray(r.comments) && r.comments[0] ? (r.comments[0].count ?? 0) : (commentsCache.get(r.id)?.length || 0),
-                created_at:      r.created_at,
-                user_id:         r.user_id,
-                _canDelete:      r.user_id === currentUserId
+                id: r.id, title: r.title, author: r.author, category: r.category,
+                description: r.description || '', kind: r.kind, fileId: r.file_id,
+                direct_url: r.direct_url, preview_url: r.preview_url, thumb_url: r.thumb_url,
+                cover_url: r.cover_url, cover_data: null,
+                cover_ratio: r.cover_ratio != null ? Number(r.cover_ratio) : null,
+                cover_source: r.cover_source, auto_pdf_cover: !!r.auto_pdf_cover,
+                downloads: r.downloads || 0, rating: Number(r.rating) || 0,
+                favorite: favoritesSet.has(r.id),
+                comments: commentsCache.get(r.id) || [],
+                comments_count: Array.isArray(r.comments) && r.comments[0] ? (r.comments[0].count ?? 0) : (commentsCache.get(r.id)?.length || 0),
+                created_at: r.created_at, user_id: r.user_id,
+                _canDelete: r.user_id === currentUserId
             };
         }
 
         /* =========================================================
-           CHARGEMENT DEPUIS SUPABASE
+           CHARGEMENT PAGINÉ DEPUIS SUPABASE
            ========================================================= */
         async function loadFavorites() {
             favoritesSet.clear();
@@ -722,19 +713,50 @@
             (data || []).forEach(f => favoritesSet.add(f.book_id));
         }
 
-        async function loadBooks() {
+        /**
+         * Charge la page suivante depuis le serveur et l'ajoute au cache.
+         * @param {boolean} reset - Si true, vide le cache et recommence à la page 0.
+         */
+        async function loadBooksPage(reset) {
+            if (serverIsLoading) return;
+            if (!reset && !serverHasMore) return;
+
+            serverIsLoading = true;
+            if (reset) {
+                serverPage    = 0;
+                serverHasMore = true;
+                booksCache    = [];
+            }
+
+            const from = serverPage * SERVER_PAGE_SIZE;
+            const to   = from + SERVER_PAGE_SIZE - 1;
+
             const { data, error } = await sb
                 .from('books')
                 .select('*, comments(count)')
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .range(from, to);
+
+            serverIsLoading = false;
 
             if (error) {
                 console.error(error);
                 showToast('Chargement impossible.', 'error');
                 return;
             }
-            booksCache = (data || []).map(rowToBook);
+
+            const batch = (data || []).map(rowToBook);
+            booksCache.push(...batch);
+
+            if (batch.length < SERVER_PAGE_SIZE) serverHasMore = false;
+            serverPage += 1;
+            initialLoadDone = true;
+
             scheduleRender();
+        }
+
+        async function reloadFromScratch() {
+            await loadBooksPage(true);
         }
 
         async function loadComments(bookId) {
@@ -743,13 +765,8 @@
                 .select('*')
                 .eq('book_id', bookId)
                 .order('created_at', { ascending: false });
-
             if (error) { console.warn('comments:', error.message); return []; }
-
-            const list = data.map(c => ({
-                id: c.id, author: c.author, text: c.text,
-                rating: c.rating, date: c.created_at, user_id: c.user_id
-            }));
+            const list = data.map(c => ({ id: c.id, author: c.author, text: c.text, rating: c.rating, date: c.created_at, user_id: c.user_id }));
             commentsCache.set(bookId, list);
             return list;
         }
@@ -761,12 +778,8 @@
             const blob = await (await fetch(dataUrl)).blob();
             const ext  = blob.type.includes('png') ? 'png' : 'jpg';
             const path = `${currentUserId}/${uid()}.${ext}`;
-
-            const { error } = await sb.storage
-                .from('covers')
-                .upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
+            const { error } = await sb.storage.from('covers').upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
             if (error) throw error;
-
             const { data } = sb.storage.from('covers').getPublicUrl(path);
             return { url: data.publicUrl, path };
         }
@@ -780,29 +793,26 @@
 
             let legacy = null;
             try {
-                legacy = JSON.parse(
-                    localStorage.getItem(STORAGE_KEY) ||
-                    localStorage.getItem(LEGACY_KEY) || '[]'
-                );
+                legacy = JSON.parse(localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_KEY) || '[]');
             } catch { legacy = null; }
 
             if (Array.isArray(legacy) && legacy.length && currentUserId) {
                 const rows = legacy.map(b => ({
-                    user_id:        currentUserId,
-                    title:          String(b.title || 'Sans titre').slice(0, 150),
-                    author:         String(b.author || 'Inconnu').slice(0, 100),
-                    category:       String(b.category || 'Autre').slice(0, 80),
-                    description:    String(b.description || '').slice(0, 1000),
-                    kind:           b.kind === 'drive' ? 'drive' : 'external',
-                    file_id:        b.fileId || null,
-                    direct_url:     b.direct_url,
-                    preview_url:    b.preview_url || null,
-                    thumb_url:      b.thumb_url || null,
-                    cover_url:      b.cover_url || null,
-                    cover_ratio:    b.cover_ratio || null,
-                    cover_source:   b.cover_source || null,
+                    user_id: currentUserId,
+                    title: String(b.title || 'Sans titre').slice(0, 150),
+                    author: String(b.author || 'Inconnu').slice(0, 100),
+                    category: String(b.category || 'Autre').slice(0, 80),
+                    description: String(b.description || '').slice(0, 1000),
+                    kind: b.kind === 'drive' ? 'drive' : 'external',
+                    file_id: b.fileId || null,
+                    direct_url: b.direct_url,
+                    preview_url: b.preview_url || null,
+                    thumb_url: b.thumb_url || null,
+                    cover_url: b.cover_url || null,
+                    cover_ratio: b.cover_ratio || null,
+                    cover_source: b.cover_source || null,
                     auto_pdf_cover: !!b.auto_pdf_cover,
-                    downloads:      b.downloads || 0
+                    downloads: b.downloads || 0
                 })).filter(r => r.direct_url);
 
                 if (rows.length) {
@@ -833,7 +843,7 @@
         }
 
         /* =========================================================
-           IMAGES / RATIO / PDF
+           IMAGES / PDF
            ========================================================= */
         function imageLoads(url, timeout) {
             return new Promise((resolve) => {
@@ -873,11 +883,9 @@
                 canvas.width = Math.max(1, Math.round(viewport.width));
                 canvas.height = Math.max(1, Math.round(viewport.height));
                 const ctx = canvas.getContext('2d', { alpha: false });
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
                 await page.render({ canvasContext: ctx, viewport }).promise;
-                const ratio = canvas.width / canvas.height;
-                return { data: canvas.toDataURL('image/jpeg', 0.75), ratio };
+                return { data: canvas.toDataURL('image/jpeg', 0.75), ratio: canvas.width / canvas.height };
             } finally { try { pdf.destroy(); } catch {} }
         }
 
@@ -937,11 +945,7 @@
             const ratio  = patch.cover_ratio  ?? book.cover_ratio;
             const source = patch.cover_source ?? book.cover_source;
 
-            const update = {
-                cover_url,
-                cover_ratio:  ratio,
-                cover_source: source
-            };
+            const update = { cover_url, cover_ratio: ratio, cover_source: source };
             if (cover_path) update.cover_path = cover_path;
 
             const { error } = await sb.from('books').update(update).eq('id', id);
@@ -965,20 +969,10 @@
 
             if (result && result.cover_data) {
                 coverCache.set(book.id, result.cover_data);
-                persistCover(book.id, {
-                    cover_data: result.cover_data,
-                    cover_url: null,
-                    cover_ratio: result.cover_ratio || null,
-                    cover_source: 'pdf'
-                });
+                persistCover(book.id, { cover_data: result.cover_data, cover_url: null, cover_ratio: result.cover_ratio || null, cover_source: 'pdf' });
             } else if (result && result.cover_url) {
                 coverCache.set(book.id, result.cover_url);
-                persistCover(book.id, {
-                    cover_url: result.cover_url,
-                    cover_data: null,
-                    cover_ratio: result.cover_ratio || null,
-                    cover_source: 'pdf'
-                });
+                persistCover(book.id, { cover_url: result.cover_url, cover_data: null, cover_ratio: result.cover_ratio || null, cover_source: 'pdf' });
             } else {
                 attemptedCovers.add(book.id);
             }
@@ -990,7 +984,7 @@
         }
 
         /* =========================================================
-           TRAITEMENT COUVERTURE FORMULAIRE
+           COUVERTURE FORMULAIRE PRINCIPAL
            ========================================================= */
         let pendingCoverImage = null;
         let pendingCoverUrl   = null;
@@ -1065,32 +1059,14 @@
         async function handleCoverUrlChange(rawValue) {
             const raw = String(rawValue || '').trim();
             const errEl = $('coverUrlError');
-
-            if (!raw) {
-                pendingCoverUrl = null;
-                errEl.classList.add('hidden'); errEl.textContent = '';
-                updateCoverPreview();
-                return;
-            }
-
+            if (!raw) { pendingCoverUrl = null; errEl.classList.add('hidden'); errEl.textContent = ''; updateCoverPreview(); return; }
             let url;
-            try { url = new URL(raw); } catch {
-                errEl.textContent = 'URL invalide.'; errEl.classList.remove('hidden');
-                pendingCoverUrl = null; updateCoverPreview(); return;
-            }
+            try { url = new URL(raw); } catch { errEl.textContent = 'URL invalide.'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return; }
             if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-                errEl.textContent = 'L\'URL doit commencer par http:// ou https://';
-                errEl.classList.remove('hidden');
-                pendingCoverUrl = null; updateCoverPreview(); return;
+                errEl.textContent = 'L\'URL doit commencer par http:// ou https://'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return;
             }
-
             const ok = await withTimeout(imageLoads(raw, 8000), 9000, 'timeout').catch(() => false);
-            if (!ok) {
-                errEl.textContent = 'Impossible de charger l\'image depuis cette URL.';
-                errEl.classList.remove('hidden');
-                pendingCoverUrl = null; updateCoverPreview(); return;
-            }
-
+            if (!ok) { errEl.textContent = 'Impossible de charger l\'image depuis cette URL.'; errEl.classList.remove('hidden'); pendingCoverUrl = null; updateCoverPreview(); return; }
             const ratio = clampRatio(await getImageRatio(raw)) || A4_RATIO_NUM;
             pendingCoverUrl = { url: raw, ratio };
             errEl.classList.add('hidden'); errEl.textContent = '';
@@ -1098,12 +1074,9 @@
         }
 
         function handleCoverClear() {
-            pendingCoverImage = null;
-            pendingCoverUrl   = null;
-            $('coverImage').value = '';
-            $('coverUrl').value = '';
-            const errEl = $('coverUrlError');
-            errEl.classList.add('hidden'); errEl.textContent = '';
+            pendingCoverImage = null; pendingCoverUrl = null;
+            $('coverImage').value = ''; $('coverUrl').value = '';
+            const errEl = $('coverUrlError'); errEl.classList.add('hidden'); errEl.textContent = '';
             updateCoverPreview();
         }
 
@@ -1120,9 +1093,7 @@
         function incrementDownloads(id) {
             const book = booksCache.find(b => b.id === id);
             if (book) { book.downloads = (book.downloads || 0) + 1; renderBooks(); }
-
-            sb.rpc('increment_downloads', { p_book_id: id })
-              .then(({ error }) => { if (error) console.warn('downloads:', error.message); });
+            sb.rpc('increment_downloads', { p_book_id: id }).then(({ error }) => { if (error) console.warn('downloads:', error.message); });
         }
 
         function triggerDownload(book) {
@@ -1138,18 +1109,15 @@
         async function toggleFavorite(id) {
             const book = booksCache.find(b => b.id === id);
             if (!book) return;
-
             const next = !book.favorite;
             book.favorite = next;
             next ? favoritesSet.add(id) : favoritesSet.delete(id);
             favFlashId = id;
             renderBooks();
             showToast(next ? 'Ajouté aux favoris ❤️' : 'Retiré des favoris');
-
             const { error } = next
                 ? await sb.from('favorites').insert({ user_id: currentUserId, book_id: id })
                 : await sb.from('favorites').delete().eq('user_id', currentUserId).eq('book_id', id);
-
             if (error) {
                 book.favorite = !next;
                 next ? favoritesSet.delete(id) : favoritesSet.add(id);
@@ -1160,16 +1128,11 @@
 
         async function deleteBook(id, title) {
             if (!window.confirm('Supprimer « ' + (title || 'ce livre') + ' » ?')) return;
-
             const { error } = await sb.from('books').delete().eq('id', id);
             if (error) { showToast('Suppression impossible (droits insuffisants).', 'error'); return; }
-
             booksCache = booksCache.filter(b => b.id !== id);
-            coverCache.delete(id);
-            pendingCovers.delete(id);
-            attemptedCovers.delete(id);
-            ratioFixAttempted.delete(id);
-            commentsCache.delete(id);
+            coverCache.delete(id); pendingCovers.delete(id); attemptedCovers.delete(id);
+            ratioFixAttempted.delete(id); commentsCache.delete(id);
             renderBooks();
             showToast('Livre supprimé.');
         }
@@ -1179,77 +1142,63 @@
            ========================================================= */
         function exportLibrary() {
             if (!booksCache.length) { showToast('Aucun livre à exporter.', 'error'); return; }
-
             const clean = booksCache.map(b => {
                 const { _canDelete, comments_count, user_id, ...rest } = b;
                 return rest;
             });
-
             const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(clean, null, 2));
             const a = document.createElement('a');
             a.href = dataStr;
             a.download = 'bibliotheque_solidaire_backup_' + new Date().toISOString().slice(0, 10) + '.json';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            document.body.appendChild(a); a.click(); a.remove();
             showToast('Bibliothèque exportée avec succès !');
         }
 
         function importLibrary(event) {
             const file = event.target.files && event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (!Array.isArray(imported)) throw new Error('Format invalide');
-
-                    const replaceAll = window.confirm(
-                        'OK = Remplacer toute la bibliothèque\nAnnuler = Fusionner avec l\'existante'
-                    );
-
+                    const replaceAll = window.confirm('OK = Remplacer toute la bibliothèque\nAnnuler = Fusionner avec l\'existante');
                     if (replaceAll) {
                         if (!window.confirm('Confirmer la suppression définitive de tous vos livres ?')) return;
                         const { error } = await sb.from('books').delete().eq('user_id', currentUserId);
                         if (error) throw error;
                         booksCache = [];
                     }
-
                     const existingUrls = new Set(booksCache.map(b => b.direct_url));
                     const rows = imported
                         .filter(b => b && b.direct_url && !existingUrls.has(b.direct_url))
                         .map(b => ({
-                            user_id:        currentUserId,
-                            title:          String(b.title || 'Sans titre').slice(0, 150),
-                            author:         String(b.author || 'Inconnu').slice(0, 100),
-                            category:       String(b.category || 'Autre').slice(0, 80),
-                            description:    String(b.description || '').slice(0, 1000),
-                            kind:           b.kind === 'drive' ? 'drive' : 'external',
-                            file_id:        b.fileId || null,
-                            direct_url:     b.direct_url,
-                            preview_url:    b.preview_url || null,
-                            thumb_url:      b.thumb_url || null,
-                            cover_url:      b.cover_url || null,
-                            cover_ratio:    b.cover_ratio || null,
-                            cover_source:   b.cover_source || null,
+                            user_id: currentUserId,
+                            title: String(b.title || 'Sans titre').slice(0, 150),
+                            author: String(b.author || 'Inconnu').slice(0, 100),
+                            category: String(b.category || 'Autre').slice(0, 80),
+                            description: String(b.description || '').slice(0, 1000),
+                            kind: b.kind === 'drive' ? 'drive' : 'external',
+                            file_id: b.fileId || null,
+                            direct_url: b.direct_url,
+                            preview_url: b.preview_url || null,
+                            thumb_url: b.thumb_url || null,
+                            cover_url: b.cover_url || null,
+                            cover_ratio: b.cover_ratio || null,
+                            cover_source: b.cover_source || null,
                             auto_pdf_cover: !!b.auto_pdf_cover,
-                            downloads:      b.downloads || 0
+                            downloads: b.downloads || 0
                         }));
-
                     if (rows.length) {
                         const { error } = await sb.from('books').insert(rows);
                         if (error) throw error;
                     }
-
-                    await loadBooks();
+                    await reloadFromScratch();
                     showToast(`${rows.length} livre(s) importé(s) !`);
                 } catch (err) {
                     console.error(err);
                     showToast('Fichier de sauvegarde invalide.', 'error');
-                } finally {
-                    event.target.value = '';
-                }
+                } finally { event.target.value = ''; }
             };
             reader.readAsText(file);
         }
@@ -1260,13 +1209,9 @@
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
         }
-
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
@@ -1279,23 +1224,17 @@
             const grid = $('booksGrid');
             grid.classList.remove('view-grid', 'view-list', 'view-compact');
             grid.classList.add('view-' + currentView);
-
             ['viewGridBtn', 'viewListBtn', 'viewCompactBtn'].forEach(id => {
                 const btn = $(id);
                 btn.classList.remove('bg-teal-600', 'text-white', 'shadow');
                 btn.classList.add('text-slate-400', 'hover:text-white');
             });
-
             const activeBtn = currentView === 'grid' ? 'viewGridBtn' : currentView === 'list' ? 'viewListBtn' : 'viewCompactBtn';
             $(activeBtn).classList.remove('text-slate-400', 'hover:text-white');
             $(activeBtn).classList.add('bg-teal-600', 'text-white', 'shadow');
             localStorage.setItem('libraryViewMode', currentView);
         }
-
-        function setView(mode) {
-            currentView = mode;
-            updateViewUI();
-        }
+        function setView(mode) { currentView = mode; updateViewUI(); }
 
         window.switchTab = function(tabName) {
             const views = ['accueil', 'bibliotheque', 'profile'];
@@ -1308,16 +1247,13 @@
                     navBtn.classList.add('text-slate-400', 'hover:text-white');
                 }
             });
-
             const activeView = $('view' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
             if (activeView) activeView.classList.remove('hidden');
-
             const activeNav = $('navBtn' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
             if (activeNav) {
                 activeNav.classList.remove('text-slate-400', 'hover:text-white');
                 activeNav.classList.add('text-teal-400');
             }
-
             if (tabName === 'profile') updateProfileStats();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
@@ -1328,9 +1264,20 @@
             $('profileNameDisplay').textContent = savedName;
             $('statBooksCount').textContent = booksCache.filter(b => b.user_id === currentUserId).length;
             $('statFavoritesCount').textContent = booksCache.filter(b => b.favorite).length;
-
             const initials = savedName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
             $('profileAvatarInitials').textContent = initials || 'MS';
+
+            // Statut du compte
+            const statusEl = $('profileAccountStatus');
+            if (isAnonymousUser) {
+                statusEl.innerHTML = '<span class="pulse-dot"></span><span>Compte anonyme</span>';
+                $('upgradeBanner').classList.remove('hidden');
+                $('signOutSection').classList.add('hidden');
+            } else {
+                statusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span><span>' + escapeHtml(currentUserEmail || 'Compte permanent') + '</span>';
+                $('upgradeBanner').classList.add('hidden');
+                $('signOutSection').classList.remove('hidden');
+            }
         }
 
         /* =========================================================
@@ -1343,6 +1290,28 @@
             requestAnimationFrame(() => { renderQueued = false; renderBooks(); });
         }
 
+        /* ---- SKELETON LOADING ---- */
+        function renderSkeletons(count) {
+            const grid = $('booksGrid');
+            grid.textContent = '';
+            const frag = document.createDocumentFragment();
+            for (let i = 0; i < (count || 6); i++) {
+                const card = document.createElement('div');
+                card.className = 'skeleton-card';
+                card.innerHTML = `
+                    <div class="skeleton skeleton-cover"></div>
+                    <div style="padding: 10px 0;">
+                        <div class="skeleton skeleton-line w-3/4"></div>
+                        <div class="skeleton skeleton-line w-1/2"></div>
+                        <div class="skeleton skeleton-line w-2/3"></div>
+                        <div class="skeleton skeleton-line h-8" style="margin-top: 12px;"></div>
+                    </div>
+                `;
+                frag.append(card);
+            }
+            grid.append(frag);
+        }
+
         function createBookCard(book) {
             const card = document.createElement('article');
             card.className = 'book-card bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 flex flex-col shadow-md shadow-slate-950/5 relative overflow-hidden';
@@ -1350,9 +1319,7 @@
             const cover = document.createElement('div');
             cover.className = 'book-cover-wrapper relative overflow-hidden bg-slate-100 dark:bg-[#0b1120] flex items-center justify-center';
 
-            const effectiveRatio = (book.cover_ratio && isFinite(book.cover_ratio) && book.cover_ratio > 0)
-                ? book.cover_ratio
-                : A4_RATIO_NUM;
+            const effectiveRatio = (book.cover_ratio && isFinite(book.cover_ratio) && book.cover_ratio > 0) ? book.cover_ratio : A4_RATIO_NUM;
             cover.style.setProperty('--cover-ratio', String(effectiveRatio));
 
             const src = coverSrcFor(book);
@@ -1362,6 +1329,7 @@
             img.src = src;
             img.alt = 'Couverture';
             img.loading = 'lazy';
+            img.decoding = 'async';
             img.className = 'absolute inset-0 w-full h-full ' + (isPdfCover ? 'object-contain pdf-cover-img' : 'object-cover');
             img.addEventListener('error', () => { if (img.src !== PLACEHOLDER_COVER) img.src = PLACEHOLDER_COVER; }, { once: true });
             cover.append(img);
@@ -1372,10 +1340,7 @@
                 probe.onload = () => {
                     const r = probe.naturalWidth / probe.naturalHeight;
                     const clamped = clampPdfRatio(r);
-                    if (clamped) {
-                        persistCover(book.id, { cover_ratio: clamped });
-                        scheduleRender();
-                    }
+                    if (clamped) { persistCover(book.id, { cover_ratio: clamped }); scheduleRender(); }
                 };
                 probe.onerror = () => {};
                 probe.src = book.cover_data;
@@ -1401,13 +1366,23 @@
             favBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFavorite(book.id); });
             cover.append(favBtn);
 
+            // Bouton édition (uniquement pour les livres de l'utilisateur)
             if (book._canDelete !== false) {
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'book-edit-btn absolute top-2 right-16 z-10 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 text-slate-900 dark:text-white rounded w-6 h-6 flex items-center justify-center transition backdrop-blur-md shadow';
+                editBtn.setAttribute('aria-label', 'Modifier');
+                editBtn.title = 'Modifier';
+                editBtn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+                editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(book.id); });
+                cover.append(editBtn);
+
                 const del = document.createElement('button');
                 del.type = 'button';
                 del.className = 'book-delete-btn text-slate-300 hover:text-white transition shadow';
                 del.setAttribute('aria-label', 'Supprimer');
                 del.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
-                del.addEventListener('click', () => deleteBook(book.id, book.title));
+                del.addEventListener('click', (e) => { e.stopPropagation(); deleteBook(book.id, book.title); });
                 cover.append(del);
             }
 
@@ -1475,18 +1450,13 @@
                 toggleFavorite(book.id);
             });
 
-            if (favFlashId === book.id) {
-                card.classList.add('fav-pop');
-                favFlashId = null;
-            }
-
+            if (favFlashId === book.id) { card.classList.add('fav-pop'); favFlashId = null; }
             return card;
         }
 
         function renderCategoryChips(books) {
             const container = $('categoryChips');
             const categories = ['TOUT', '❤️ Favoris', ...new Set(books.map(b => b.category).filter(Boolean))];
-
             container.textContent = '';
             for (const cat of categories) {
                 const btn = document.createElement('button');
@@ -1495,40 +1465,37 @@
                 btn.className = 'whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition ' +
                     (isActive ? 'bg-teal-600 text-white shadow-md shadow-teal-600/30' : 'bg-slate-100 dark:bg-[#0b1120] text-slate-400 hover:text-white border border-slate-200/50 dark:border-slate-800');
                 btn.textContent = cat;
-                btn.addEventListener('click', () => {
-                    currentCategoryFilter = cat;
-                    displayedCount = PAGE_SIZE;
-                    renderBooks();
-                });
+                btn.addEventListener('click', () => { currentCategoryFilter = cat; displayedCount = UI_PAGE_SIZE; renderBooks(); });
                 container.append(btn);
             }
         }
 
         function renderBooks() {
             const allBooks = booksCache;
-            renderCategoryChips(allBooks);
-
             const grid = $('booksGrid');
             const counter = $('bookCount');
             const sentinel = $('infiniteScrollSentinel');
 
+            // ÉTAT INITIAL : SKELETON
+            if (!initialLoadDone) {
+                renderSkeletons(6);
+                counter.textContent = 'Chargement…';
+                sentinel.classList.add('hidden');
+                return;
+            }
+
+            renderCategoryChips(allBooks);
+
             const query = currentSearchQuery.toLowerCase().trim();
-            
             let filtered = allBooks.filter(book => {
                 let matchesCat = true;
-                if (currentCategoryFilter === '❤️ Favoris') {
-                    matchesCat = !!book.favorite;
-                } else if (currentCategoryFilter !== 'TOUT') {
-                    matchesCat = book.category === currentCategoryFilter;
-                }
-
+                if (currentCategoryFilter === '❤️ Favoris') matchesCat = !!book.favorite;
+                else if (currentCategoryFilter !== 'TOUT') matchesCat = book.category === currentCategoryFilter;
                 const matchesRating = (book.rating || 0) >= currentMinRating;
-
-                const matchesQuery = !query || 
+                const matchesQuery = !query ||
                     (book.title && book.title.toLowerCase().includes(query)) ||
                     (book.author && book.author.toLowerCase().includes(query)) ||
                     (book.description && book.description.toLowerCase().includes(query));
-
                 return matchesCat && matchesRating && matchesQuery;
             });
 
@@ -1554,12 +1521,11 @@
             }
 
             const paginatedBooks = filtered.slice(0, displayedCount);
-
             const frag = document.createDocumentFragment();
             for (const book of paginatedBooks) frag.append(createBookCard(book));
             grid.append(frag);
 
-            if (displayedCount < filtered.length) {
+            if (displayedCount < filtered.length || serverHasMore) {
                 sentinel.classList.remove('hidden');
             } else {
                 sentinel.classList.add('hidden');
@@ -1568,20 +1534,32 @@
             for (const book of paginatedBooks) ensureCover(book);
         }
 
+        /* =========================================================
+           INFINITE SCROLL (client-side UI + pagination serveur)
+           ========================================================= */
         function initInfiniteScroll() {
             const sentinel = $('infiniteScrollSentinel');
             if (!sentinel) return;
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        if (displayedCount < filteredBooksCache.length) {
-                            displayedCount += PAGE_SIZE;
-                            renderBooks();
-                        }
+            const observer = new IntersectionObserver(async (entries) => {
+                entries.forEach(async entry => {
+                    if (!entry.isIntersecting) return;
+                    if (serverIsLoading) return;
+
+                    // 1) S'il reste des livres non affichés en mémoire, on en affiche plus.
+                    if (displayedCount < filteredBooksCache.length) {
+                        displayedCount += UI_PAGE_SIZE;
+                        renderBooks();
+                        return;
+                    }
+                    // 2) Sinon, si le serveur a encore des pages, on les charge.
+                    if (serverHasMore) {
+                        await loadBooksPage(false);
+                        displayedCount += UI_PAGE_SIZE;
+                        renderBooks();
                     }
                 });
-            }, { rootMargin: '200px' });
+            }, { rootMargin: '300px' });
 
             observer.observe(sentinel);
         }
@@ -1592,16 +1570,13 @@
         async function openReviewsModal(bookId) {
             const book = booksCache.find(b => b.id === bookId);
             if (!book) return;
-
             $('modalBookId').value = book.id;
             $('modalBookTitle').textContent = 'Avis : ' + book.title;
             selectedRating = 5;
             updateStarPickerUI();
-
             const list = $('modalCommentsList');
             list.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Chargement…</p>';
             $('reviewsModal').classList.remove('hidden');
-
             const comments = await loadComments(bookId);
             renderCommentsList(comments);
         }
@@ -1621,7 +1596,6 @@
                 list.append(p);
                 return;
             }
-
             for (const c of comments) {
                 const div = document.createElement('div');
                 div.className = 'bg-slate-50 dark:bg-[#0b1120] p-3 rounded-xl border border-slate-200/50 dark:border-slate-800 text-xs space-y-1';
@@ -1640,11 +1614,8 @@
         function updateStarPickerUI() {
             const stars = $('starPicker').querySelectorAll('span');
             stars.forEach((star, idx) => {
-                if (idx < selectedRating) {
-                    star.className = 'text-amber-400 transition-colors';
-                } else {
-                    star.className = 'text-slate-700 transition-colors';
-                }
+                if (idx < selectedRating) star.className = 'text-amber-400 transition-colors';
+                else star.className = 'text-slate-700 transition-colors';
             });
         }
 
@@ -1653,28 +1624,166 @@
             const bookId = $('modalBookId').value;
             const author = $('commentAuthor').value.trim();
             const text   = $('commentText').value.trim();
-
             if (!author || !text) { showToast('Veuillez remplir tous les champs.', 'error'); return; }
-
-            const { error } = await sb.from('comments').insert({
-                book_id: bookId,
-                user_id: currentUserId,
-                author,
-                text,
-                rating: selectedRating
-            });
-
+            const { error } = await sb.from('comments').insert({ book_id: bookId, user_id: currentUserId, author, text, rating: selectedRating });
             if (error) { showToast('Publication impossible.', 'error'); return; }
-
             $('commentText').value = '';
             const comments = await loadComments(bookId);
             renderCommentsList(comments);
-            await loadBooks();
+            // Mettre à jour le compteur local sans recharger tout
+            const b = booksCache.find(x => x.id === bookId);
+            if (b) { b.comments_count = comments.length; }
+            renderBooks();
             showToast('Avis publié avec succès !');
         }
 
         /* =========================================================
-           FORMULAIRE : SOUMISSION
+           MODAL ÉDITION LIVRE
+           ========================================================= */
+        function openEditModal(bookId) {
+            const book = booksCache.find(b => b.id === bookId);
+            if (!book) return;
+            $('editBookId').value    = book.id;
+            $('editTitle').value     = book.title || '';
+            $('editAuthor').value    = book.author || '';
+            $('editCategory').value  = book.category || '';
+            $('editDescription').value = book.description || '';
+            $('editCoverUrl').value  = (book.cover_source === 'url' ? (book.cover_url || '') : '');
+            $('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            $('editModal').classList.add('hidden');
+            $('editForm').reset();
+        }
+
+        async function handleEditSubmit(e) {
+            e.preventDefault();
+            const bookId = $('editBookId').value;
+            const book = booksCache.find(b => b.id === bookId);
+            if (!book) return;
+
+            const newTitle = $('editTitle').value.trim();
+            const newAuthor = $('editAuthor').value.trim();
+            const newCategory = $('editCategory').value.trim();
+            const newDescription = $('editDescription').value.trim();
+            const newCoverUrl = $('editCoverUrl').value.trim();
+
+            if (!newTitle || !newAuthor || !newCategory) {
+                showToast('Titre, auteur et catégorie sont obligatoires.', 'error');
+                return;
+            }
+
+            // Validation URL couverture si fournie
+            let coverUrlToSave = book.cover_url;
+            let coverSourceToSave = book.cover_source;
+            let coverRatioToSave = book.cover_ratio;
+
+            if (newCoverUrl && newCoverUrl !== book.cover_url) {
+                let u;
+                try { u = new URL(newCoverUrl); } catch {
+                    showToast('URL de couverture invalide.', 'error');
+                    return;
+                }
+                if (u.protocol !== 'https:' && u.protocol !== 'http:') {
+                    showToast('L\'URL doit commencer par http(s)://', 'error');
+                    return;
+                }
+                coverUrlToSave = u.href;
+                coverSourceToSave = 'url';
+                coverRatioToSave = clampRatio(await getImageRatio(newCoverUrl)) || A4_RATIO_NUM;
+            } else if (!newCoverUrl && book.cover_source === 'url') {
+                // L'utilisateur a effacé l'URL
+                coverUrlToSave = null;
+                coverSourceToSave = null;
+                coverRatioToSave = null;
+            }
+
+            const update = {
+                title: newTitle,
+                author: newAuthor,
+                category: newCategory,
+                description: newDescription,
+                cover_url: coverUrlToSave,
+                cover_source: coverSourceToSave,
+                cover_ratio: coverRatioToSave
+            };
+
+            const { error } = await sb.from('books').update(update).eq('id', bookId);
+            if (error) {
+                console.error(error);
+                showToast('Modification impossible : ' + error.message, 'error');
+                return;
+            }
+
+            // Mise à jour du cache local
+            Object.assign(book, {
+                title: newTitle,
+                author: newAuthor,
+                category: newCategory,
+                description: newDescription,
+                cover_url: coverUrlToSave,
+                cover_source: coverSourceToSave,
+                cover_ratio: coverRatioToSave
+            });
+            // Si l'URL de couverture a changé, on purge le cache d'image
+            coverCache.delete(bookId);
+
+            closeEditModal();
+            renderBooks();
+            showToast('Livre modifié avec succès !');
+        }
+
+        /* =========================================================
+           MODAL LOGIN (conversion anonyme → permanent)
+           ========================================================= */
+        function openLoginModal() {
+            $('loginStep1').classList.remove('hidden');
+            $('loginStep2').classList.add('hidden');
+            $('loginEmail').value = '';
+            $('loginModal').classList.remove('hidden');
+        }
+
+        function closeLoginModal() {
+            $('loginModal').classList.add('hidden');
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const email = $('loginEmail').value.trim();
+            if (!email) return;
+
+            const btn = $('loginSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Envoi en cours…';
+
+            // updateUser() sur un compte anonyme → lie l'email au même user_id
+            // Le compte devient permanent et tous les livres/favoris sont conservés
+            const { error } = await sb.auth.updateUser({ email });
+
+            btn.disabled = false;
+            btn.textContent = 'Envoyer le lien magique';
+
+            if (error) {
+                console.error(error);
+                showToast('Erreur : ' + error.message, 'error');
+                return;
+            }
+
+            $('loginSentTo').textContent = email;
+            $('loginStep1').classList.add('hidden');
+            $('loginStep2').classList.remove('hidden');
+        }
+
+        async function handleSignOut() {
+            if (!window.confirm('Se déconnecter ? Vous pourrez vous reconnecter avec votre email.')) return;
+            await sb.auth.signOut();
+            localStorage.removeItem('profileName');
+            location.reload();
+        }
+
+        /* =========================================================
+           FORMULAIRE PRINCIPAL : SOUMISSION
            ========================================================= */
         function showLinkError(message) {
             const el = $('linkError');
@@ -1719,10 +1828,7 @@
 
             const coverUrlRaw = $('coverUrl').value.trim();
             const autoPdfCover = $('autoPdfCover').checked;
-            let coverUrlFinal = null;
-            let coverRatioFinal = null;
-            let coverDataFinal = null;
-            let coverSourceFinal = null;
+            let coverUrlFinal = null, coverRatioFinal = null, coverDataFinal = null, coverSourceFinal = null;
 
             if (pendingCoverImage) {
                 coverDataFinal = pendingCoverImage.data;
@@ -1730,26 +1836,17 @@
                 coverSourceFinal = 'custom';
             } else if (coverUrlRaw) {
                 let u;
-                try { u = new URL(coverUrlRaw); } catch {
-                    showToast('URL de couverture invalide.', 'error');
-                    $('coverUrl').focus(); return;
-                }
+                try { u = new URL(coverUrlRaw); } catch { showToast('URL de couverture invalide.', 'error'); $('coverUrl').focus(); return; }
                 if (u.protocol !== 'https:' && u.protocol !== 'http:') {
-                    showToast('L\'URL de couverture doit commencer par http:// ou https://', 'error');
-                    $('coverUrl').focus(); return;
+                    showToast('L\'URL de couverture doit commencer par http:// ou https://', 'error'); $('coverUrl').focus(); return;
                 }
-                if (pendingCoverUrl && pendingCoverUrl.url === coverUrlRaw) {
-                    coverRatioFinal = pendingCoverUrl.ratio;
-                } else {
-                    coverRatioFinal = clampRatio(await getImageRatio(coverUrlRaw)) || A4_RATIO_NUM;
-                }
+                if (pendingCoverUrl && pendingCoverUrl.url === coverUrlRaw) coverRatioFinal = pendingCoverUrl.ratio;
+                else coverRatioFinal = clampRatio(await getImageRatio(coverUrlRaw)) || A4_RATIO_NUM;
                 coverUrlFinal = u.href;
                 coverSourceFinal = 'url';
             }
 
-            // Upload couverture dans le Storage
-            let cover_url  = coverUrlFinal;
-            let cover_path = null;
+            let cover_url = coverUrlFinal, cover_path = null;
             if (coverDataFinal) {
                 try {
                     const up = await uploadCoverDataUrl(coverDataFinal);
@@ -1763,49 +1860,27 @@
             }
 
             const insertRow = {
-                user_id:        currentUserId,
-                title,
-                author,
-                category,
-                description:    desc,
-                kind:           info.kind,
-                file_id:        info.fileId || null,
-                direct_url:     info.directUrl,
-                preview_url:    info.previewUrl,
-                thumb_url:      info.thumbUrl,
-                cover_url:      cover_url,
-                cover_ratio:    coverRatioFinal,
-                cover_source:   coverSourceFinal,
+                user_id: currentUserId, title, author, category,
+                description: desc, kind: info.kind, file_id: info.fileId || null,
+                direct_url: info.directUrl, preview_url: info.previewUrl, thumb_url: info.thumbUrl,
+                cover_url, cover_ratio: coverRatioFinal, cover_source: coverSourceFinal,
                 auto_pdf_cover: autoPdfCover
             };
             if (cover_path) insertRow.cover_path = cover_path;
 
-            const { data, error } = await sb
-                .from('books')
-                .insert(insertRow)
-                .select('*, comments(count)')
-                .single();
-
-            if (error) {
-                console.error(error);
-                showToast('Publication impossible : ' + error.message, 'error');
-                return;
-            }
+            const { data, error } = await sb.from('books').insert(insertRow).select('*, comments(count)').single();
+            if (error) { console.error(error); showToast('Publication impossible : ' + error.message, 'error'); return; }
 
             booksCache.unshift(rowToBook(data));
 
-            // Reset du formulaire
             $('bookForm').reset();
-            $('categoryCustom').classList.add('hidden');
-            $('categoryCustom').required = false;
+            $('categoryCustom').classList.add('hidden'); $('categoryCustom').required = false;
             $('autoPdfCover').checked = false;
-            pendingCoverImage = null;
-            pendingCoverUrl   = null;
-            const errEl = $('coverUrlError');
-            errEl.classList.add('hidden'); errEl.textContent = '';
+            pendingCoverImage = null; pendingCoverUrl = null;
+            const errEl = $('coverUrlError'); errEl.classList.add('hidden'); errEl.textContent = '';
             updateCoverPreview();
 
-            displayedCount = PAGE_SIZE;
+            displayedCount = UI_PAGE_SIZE;
             renderBooks();
             showToast('Livre publié avec succès !');
             switchTab('bibliotheque');
@@ -1816,22 +1891,19 @@
            ========================================================= */
         function subscribeRealtime() {
             if (realtimeChannel) sb.removeChannel(realtimeChannel);
-
             realtimeChannel = sb.channel('biblio-live')
-                .on('postgres_changes',
-                    { event: '*', schema: 'public', table: 'books' },
-                    () => {
-                        clearTimeout(realtimeReloadTimer);
-                        realtimeReloadTimer = setTimeout(loadBooks, 400);
-                    })
-                .on('postgres_changes',
-                    { event: '*', schema: 'public', table: 'comments' },
-                    (payload) => {
-                        const bid = payload.new?.book_id || payload.old?.book_id;
-                        if (bid) commentsCache.delete(bid);
-                        clearTimeout(realtimeReloadTimer);
-                        realtimeReloadTimer = setTimeout(loadBooks, 400);
-                    })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'books' }, () => {
+                    clearTimeout(realtimeReloadTimer);
+                    realtimeReloadTimer = setTimeout(async () => {
+                        await reloadFromScratch();
+                        displayedCount = Math.max(displayedCount, UI_PAGE_SIZE);
+                        renderBooks();
+                    }, 400);
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, (payload) => {
+                    const bid = payload.new?.book_id || payload.old?.book_id;
+                    if (bid) commentsCache.delete(bid);
+                })
                 .subscribe();
         }
 
@@ -1839,38 +1911,42 @@
            BOOTSTRAP SUPABASE
            ========================================================= */
         async function bootstrapSupabase() {
-            if (!window.supabase) {
-                showToast('SDK Supabase introuvable.', 'error');
-                return false;
-            }
-
+            if (!window.supabase) { showToast('SDK Supabase introuvable.', 'error'); return false; }
             sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+                auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' }
             });
 
-            // Session existante ou création d'un compte anonyme
             let { data: { session } } = await sb.auth.getSession();
             if (!session) {
                 const { error } = await sb.auth.signInAnonymously();
-                if (error) {
-                    console.error(error);
-                    showToast('Auth anonyme désactivée côté Supabase.', 'error');
-                    return false;
-                }
+                if (error) { console.error(error); showToast('Auth anonyme désactivée côté Supabase.', 'error'); return false; }
                 ({ data: { session } } = await sb.auth.getSession());
             }
 
             currentUserId = session?.user?.id || null;
+            currentUserEmail = session?.user?.email || null;
+            isAnonymousUser = session?.user?.is_anonymous === true || (!currentUserEmail && !session?.user?.phone);
             if (!currentUserId) { showToast('Session introuvable.', 'error'); return false; }
 
-            // Profil
-            const { data: prof } = await sb.from('profiles')
-                .select('display_name').eq('id', currentUserId).maybeSingle();
+            // Détecter les changements de session (retour du lien magique)
+            sb.auth.onAuthStateChange((event, sess) => {
+                if (!sess) return;
+                currentUserId = sess.user?.id || currentUserId;
+                currentUserEmail = sess.user?.email || null;
+                isAnonymousUser = sess.user?.is_anonymous === true || (!currentUserEmail && !sess.user?.phone);
+                if (event === 'USER_UPDATED' && !isAnonymousUser) {
+                    showToast('Compte permanent activé ! 🎉');
+                    closeLoginModal();
+                }
+                updateProfileStats();
+            });
+
+            const { data: prof } = await sb.from('profiles').select('display_name').eq('id', currentUserId).maybeSingle();
             if (prof?.display_name) localStorage.setItem('profileName', prof.display_name);
 
             await migrateLocalStorageToSupabase();
             await loadFavorites();
-            await loadBooks();
+            await loadBooksPage(true);
             subscribeRealtime();
             return true;
         }
@@ -1902,40 +1978,50 @@
             $('categorySelect').addEventListener('change', handleCategoryChange);
 
             $('closeModalBtn').addEventListener('click', closeReviewsModal);
-            $('reviewsModal').addEventListener('click', (e) => {
-                if (e.target === $('reviewsModal')) closeReviewsModal();
-            });
+            $('reviewsModal').addEventListener('click', (e) => { if (e.target === $('reviewsModal')) closeReviewsModal(); });
             $('reviewForm').addEventListener('submit', handleReviewSubmit);
 
             $('starPicker').querySelectorAll('span').forEach((star, idx) => {
                 star.addEventListener('click', () => { selectedRating = idx + 1; updateStarPickerUI(); });
             });
 
+            // Édition
+            $('closeEditBtn').addEventListener('click', closeEditModal);
+            $('cancelEditBtn').addEventListener('click', closeEditModal);
+            $('editModal').addEventListener('click', (e) => { if (e.target === $('editModal')) closeEditModal(); });
+            $('editForm').addEventListener('submit', handleEditSubmit);
+
+            // Login
+            $('upgradeBtn').addEventListener('click', openLoginModal);
+            $('closeLoginBtn').addEventListener('click', closeLoginModal);
+            $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) closeLoginModal(); });
+            $('loginForm').addEventListener('submit', handleLoginSubmit);
+            $('loginBackBtn').addEventListener('click', () => {
+                $('loginStep1').classList.remove('hidden');
+                $('loginStep2').classList.add('hidden');
+            });
+            $('signOutBtn').addEventListener('click', handleSignOut);
+
+            // Recherche avec debounce
+            let searchTimer = null;
             $('searchInput').addEventListener('input', (e) => {
-                currentSearchQuery = e.target.value;
-                displayedCount = PAGE_SIZE;
-                renderBooks();
-            });
-            $('minRatingFilter').addEventListener('change', (e) => {
-                currentMinRating = Number(e.target.value);
-                displayedCount = PAGE_SIZE;
-                renderBooks();
-            });
-            $('sortSelect').addEventListener('change', (e) => {
-                currentSort = e.target.value;
-                displayedCount = PAGE_SIZE;
-                renderBooks();
+                clearTimeout(searchTimer);
+                const v = e.target.value;
+                searchTimer = setTimeout(() => {
+                    currentSearchQuery = v;
+                    displayedCount = UI_PAGE_SIZE;
+                    renderBooks();
+                }, 250);
             });
 
-            // Profil → Supabase
+            $('minRatingFilter').addEventListener('change', (e) => { currentMinRating = Number(e.target.value); displayedCount = UI_PAGE_SIZE; renderBooks(); });
+            $('sortSelect').addEventListener('change', (e) => { currentSort = e.target.value; displayedCount = UI_PAGE_SIZE; renderBooks(); });
+
             $('saveProfileBtn').addEventListener('click', async () => {
                 const name = $('userNameInput').value.trim() || 'Membre solidaire';
                 localStorage.setItem('profileName', name);
                 $('profileNameDisplay').textContent = name;
-
-                const { error } = await sb.from('profiles')
-                    .upsert({ id: currentUserId, display_name: name }, { onConflict: 'id' });
-
+                const { error } = await sb.from('profiles').upsert({ id: currentUserId, display_name: name }, { onConflict: 'id' });
                 if (error) { showToast('Enregistrement distant impossible.', 'error'); return; }
                 updateProfileStats();
                 showToast('Profil mis à jour !');
@@ -1944,19 +2030,21 @@
             const savedView = localStorage.getItem('libraryViewMode');
             if (savedView && ['grid', 'list', 'compact'].includes(savedView)) currentView = savedView;
 
-            $('viewGridBtn').addEventListener('click',    () => setView('grid'));
-            $('viewListBtn').addEventListener('click',    () => setView('list'));
+            $('viewGridBtn').addEventListener('click', () => setView('grid'));
+            $('viewListBtn').addEventListener('click', () => setView('list'));
             $('viewCompactBtn').addEventListener('click', () => setView('compact'));
 
             updateViewUI();
             updateProfileStats();
             initInfiniteScroll();
 
+            // Afficher les skeletons immédiatement
+            renderSkeletons(6);
+
             const ok = await bootstrapSupabase();
             if (!ok) {
                 const grid = $('booksGrid');
-                grid.innerHTML = '<p class="text-red-400 text-sm col-span-full text-center py-12">' +
-                                 'Connexion au cloud impossible. Vérifiez la configuration Supabase.</p>';
+                grid.innerHTML = '<p class="text-red-400 text-sm col-span-full text-center py-12">Connexion au cloud impossible. Vérifiez la configuration Supabase.</p>';
             }
         }
 
