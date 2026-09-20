@@ -63,6 +63,7 @@
         .collection-card { text-align: left; padding: 0.85rem; border-radius: 0.75rem; background: rgba(241,245,249,0.5); border: 1px solid rgba(226,232,240,0.5); transition: all 0.15s; cursor: pointer; }
         .dark .collection-card { background: rgba(11,17,32,0.5); border-color: rgba(30,41,59,0.8); }
         .collection-card:hover { border-color: #0d9488; transform: translateY(-2px); }
+        .badge-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.65rem; border-radius: 0.65rem; background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.3); font-size: 0.7rem; font-weight: 600; color: #5eead4; }
     </style>
 </head>
 <body class="bg-[#0b1120] text-slate-100 min-h-screen selection:bg-teal-500 selection:text-white transition-colors duration-300 pb-24 lg:pb-12">
@@ -195,11 +196,11 @@
             <div id="infiniteScrollSentinel" class="py-6 text-center text-xs text-slate-500 hidden"><span class="inline-flex items-center gap-2"><svg class="w-4 h-4 animate-spin text-teal-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Chargement...</span></div>
         </div>
 
-        <!-- PROFIL -->
+        <!-- PROFIL ENRICHI -->
         <div id="viewProfile" class="space-y-6 hidden max-w-2xl mx-auto">
             <header class="text-center space-y-1">
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mon Profil</h1>
-                <p class="text-xs sm:text-sm text-slate-400">Gérez vos informations et vos collections.</p>
+                <p class="text-xs sm:text-sm text-slate-400">Gérez vos informations, badges et collections.</p>
             </header>
 
             <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 text-center space-y-6">
@@ -209,6 +210,32 @@
                     <div class="bg-slate-50 dark:bg-[#0b1120] p-4 rounded-xl border border-slate-200/50 dark:border-slate-800"><span id="statBooksCount" class="block text-2xl font-extrabold text-teal-400">0</span><span class="text-xs text-slate-400 font-medium">Livres partagés</span></div>
                     <div class="bg-slate-50 dark:bg-[#0b1120] p-4 rounded-xl border border-slate-200/50 dark:border-slate-800"><span id="statFavoritesCount" class="block text-2xl font-extrabold text-teal-400">0</span><span class="text-xs text-slate-400 font-medium">Favoris</span></div>
                 </div>
+
+                <!-- STATS PERSONNELLES ENRICHIES -->
+                <div class="grid grid-cols-3 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <div class="bg-slate-50 dark:bg-[#0b1120] p-3 rounded-xl border border-slate-200/50 dark:border-slate-800 text-center">
+                        <span id="statDownloads" class="block text-xl font-extrabold text-teal-400">0</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Téléchargements</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-[#0b1120] p-3 rounded-xl border border-slate-200/50 dark:border-slate-800 text-center">
+                        <span id="statAvgRating" class="block text-xl font-extrabold text-amber-400">0.0</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Note moyenne</span>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-[#0b1120] p-3 rounded-xl border border-slate-200/50 dark:border-slate-800 text-center">
+                        <span id="statReviewsGiven" class="block text-xl font-extrabold text-emerald-400">0</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Avis donnés</span>
+                    </div>
+                </div>
+
+                <!-- BADGES -->
+                <div class="pt-4 text-left space-y-3 border-t border-slate-100 dark:border-slate-800">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>🏅</span> Mes badges
+                        <span id="badgesCount" class="text-xs font-normal text-slate-400"></span>
+                    </h3>
+                    <div id="badgesList" class="flex flex-wrap gap-2"></div>
+                </div>
+
                 <div id="upgradeBanner" class="pt-4 text-left space-y-3 border-t border-slate-100 dark:border-slate-800">
                     <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
                         <div class="flex items-start gap-2.5"><svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg><div class="flex-1"><p class="text-xs font-semibold text-amber-300">Sauvegardez votre compte</p><p class="text-[11px] text-amber-200/80 mt-0.5 leading-snug">Ajoutez un email pour retrouver vos livres sur tous vos appareils.</p></div></div>
@@ -222,7 +249,19 @@
                 <div id="signOutSection" class="pt-2 hidden"><button id="signOutBtn" type="button" class="text-xs text-slate-400 hover:text-red-400 transition font-medium">Se déconnecter</button></div>
             </div>
 
-            <!-- SECTION COLLECTIONS -->
+            <!-- MES CONTRIBUTIONS -->
+            <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>📖</span> Mes contributions
+                        <span id="myBooksCount" class="text-xs font-normal text-slate-400">(0)</span>
+                    </h2>
+                    <button onclick="switchTab('accueil')" class="text-xs text-teal-400 hover:underline font-semibold">Publier +</button>
+                </div>
+                <div id="myBooksList" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+            </div>
+
+            <!-- MES COLLECTIONS -->
             <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -288,7 +327,7 @@
         </div>
     </div>
 
-    <!-- Modal Collection (création) -->
+    <!-- Modal Nouvelle Collection -->
     <div id="newCollectionModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4"><h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Nouvelle collection</h3><button id="closeNewCollectionBtn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
@@ -315,10 +354,7 @@
     <div id="viewCollectionModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-slate-200/80 dark:border-slate-800 relative max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
-                <div>
-                    <h3 id="viewCollectionTitle" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Collection</h3>
-                    <p id="viewCollectionDescription" class="text-xs text-slate-400"></p>
-                </div>
+                <div><h3 id="viewCollectionTitle" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Collection</h3><p id="viewCollectionDescription" class="text-xs text-slate-400"></p></div>
                 <button id="closeViewCollectionBtn" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <div id="viewCollectionBooks" class="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
@@ -365,7 +401,7 @@
         let booksCache = [], tagsCache = new Map();
         let bookTagsMap = new Map();
         let collectionsCache = [];
-        let collectionBooksMap = new Map(); // collection_id -> [book_id]
+        let collectionBooksMap = new Map();
         const favoritesSet = new Set();
         const commentsCache = new Map();
         const coverCache = new Map();
@@ -377,8 +413,7 @@
         function withTimeout(p, ms, label) { return new Promise((res, rej) => { const t = setTimeout(() => rej(new Error(label || 'Délai dépassé')), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); }); }
         function escapeHtml(s) { return String(s || '').replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)); }
 
-        const PLACEHOLDER_COVER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 594"><rect width="420" height="594" fill="#0b1120"/><rect x="50" y="60" width="320" height="474" rx="16" fill="#1e293b" stroke="#334155" stroke-width="3"/><path d="M100 170h220M100 230h220M100 290h160" stroke="#475569" stroke-width="12" stroke-linecap="round"/><text x="210" y="460" font-family="sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Aperçu indisponible</text></svg>');
+        const PLACEHOLDER_COVER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 594"><rect width="420" height="594" fill="#0b1120"/><rect x="50" y="60" width="320" height="474" rx="16" fill="#1e293b" stroke="#334155" stroke-width="3"/><path d="M100 170h220M100 230h220M100 290h160" stroke="#475569" stroke-width="12" stroke-linecap="round"/><text x="210" y="460" font-family="sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Aperçu indisponible</text></svg>');
 
         function analyzeLink(raw) {
             const t = String(raw || '').trim();
@@ -389,10 +424,7 @@
             if (ALLOWED_HOSTS.has(url.hostname)) {
                 if (!m) return { ok: false, error: "Impossible d'extraire l'identifiant Drive." };
                 const id = m[1];
-                return { ok: true, kind: 'drive', fileId: id,
-                    directUrl: 'https://drive.google.com/file/d/' + id + '/view',
-                    previewUrl: 'https://drive.google.com/file/d/' + id + '/preview',
-                    thumbUrl: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w1200' };
+                return { ok: true, kind: 'drive', fileId: id, directUrl: 'https://drive.google.com/file/d/' + id + '/view', previewUrl: 'https://drive.google.com/file/d/' + id + '/preview', thumbUrl: 'https://drive.google.com/thumbnail?id=' + id + '&sz=w1200' };
             }
             return { ok: true, kind: 'external', directUrl: url.href, previewUrl: null, thumbUrl: null };
         }
@@ -415,28 +447,13 @@
             };
         }
 
-        // === LOAD ===
-        async function loadFavorites() {
-            favoritesSet.clear();
-            if (!currentUserId) return;
-            const { data, error } = await sb.from('favorites').select('book_id');
-            if (error) { console.warn(error); return; }
-            (data || []).forEach(f => favoritesSet.add(f.book_id));
-        }
+        async function loadFavorites() { favoritesSet.clear(); if (!currentUserId) return; const { data, error } = await sb.from('favorites').select('book_id'); if (error) { console.warn(error); return; } (data || []).forEach(f => favoritesSet.add(f.book_id)); }
 
         async function loadTagsAndBookTags() {
             const { data: tags, error: e1 } = await sb.from('tags').select('*');
             if (!e1 && tags) { tagsCache.clear(); tags.forEach(t => tagsCache.set(t.id, t)); }
             const { data: bt, error: e2 } = await sb.from('book_tags').select('book_id, tag_id');
-            if (!e2 && bt) {
-                bookTagsMap.clear();
-                for (const row of bt) {
-                    const tag = tagsCache.get(row.tag_id);
-                    if (!tag) continue;
-                    if (!bookTagsMap.has(row.book_id)) bookTagsMap.set(row.book_id, []);
-                    bookTagsMap.get(row.book_id).push(tag.name);
-                }
-            }
+            if (!e2 && bt) { bookTagsMap.clear(); for (const row of bt) { const tag = tagsCache.get(row.tag_id); if (!tag) continue; if (!bookTagsMap.has(row.book_id)) bookTagsMap.set(row.book_id, []); bookTagsMap.get(row.book_id).push(tag.name); } }
         }
 
         async function loadCollections() {
@@ -444,15 +461,9 @@
             const { data, error } = await sb.from('collections').select('*').order('created_at', { ascending: false });
             if (error) { console.warn(error); return; }
             collectionsCache = data || [];
-
             const { data: cb, error: e2 } = await sb.from('collection_books').select('collection_id, book_id');
             collectionBooksMap.clear();
-            if (!e2 && cb) {
-                for (const row of cb) {
-                    if (!collectionBooksMap.has(row.collection_id)) collectionBooksMap.set(row.collection_id, []);
-                    collectionBooksMap.get(row.collection_id).push(row.book_id);
-                }
-            }
+            if (!e2 && cb) { for (const row of cb) { if (!collectionBooksMap.has(row.collection_id)) collectionBooksMap.set(row.collection_id, []); collectionBooksMap.get(row.collection_id).push(row.book_id); } }
             renderCollections();
         }
 
@@ -471,8 +482,7 @@
             if (batch.length < SERVER_PAGE_SIZE) serverHasMore = false;
             serverPage += 1;
             initialLoadDone = true;
-            scheduleRender();
-            scheduleHomeRefresh();
+            scheduleRender(); scheduleHomeRefresh();
         }
 
         async function reloadFromScratch() { await loadBooksPage(true); }
@@ -492,7 +502,7 @@
         }
 
         function renderGlobalStats(s) {
-            const el = $('globalStats');
+            const el = $('globalStats'); if (!el) return;
             const stats = [
                 { val: s.total_books, label: 'Livres partagés', icon: '📚' },
                 { val: s.total_users, label: 'Contributeurs', icon: '👥' },
@@ -508,7 +518,6 @@
             }
         }
 
-        // === ACCUEIL ===
         let homeRefreshQueued = false;
         function scheduleHomeRefresh() { if (homeRefreshQueued) return; homeRefreshQueued = true; requestAnimationFrame(() => { homeRefreshQueued = false; renderHomeSections(); }); }
 
@@ -536,12 +545,10 @@
         function renderHomeSections() {
             const trending = [...booksCache].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 8).filter(b => b.downloads > 0);
             const tl = $('trendingList');
-            if (tl) { tl.textContent = ''; if (trending.length === 0) { const p = document.createElement('p'); p.className = 'text-xs text-slate-500 italic py-4'; p.textContent = 'Aucun livre tendance pour le moment.'; tl.append(p); } else trending.forEach(b => tl.append(createMiniBookCard(b))); }
-
+            if (tl) { tl.textContent = ''; if (trending.length === 0) { const p = document.createElement('p'); p.className = 'text-xs text-slate-500 italic py-4'; p.textContent = 'Aucun livre tendance.'; tl.append(p); } else trending.forEach(b => tl.append(createMiniBookCard(b))); }
             const recent = [...booksCache].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 8);
             const rl = $('recentList');
-            if (rl) { rl.textContent = ''; if (recent.length === 0) { const p = document.createElement('p'); p.className = 'text-xs text-slate-500 italic py-4'; p.textContent = 'Aucun livre pour le moment.'; rl.append(p); } else recent.forEach(b => rl.append(createMiniBookCard(b))); }
-
+            if (rl) { rl.textContent = ''; if (recent.length === 0) { const p = document.createElement('p'); p.className = 'text-xs text-slate-500 italic py-4'; p.textContent = 'Aucun livre.'; rl.append(p); } else recent.forEach(b => rl.append(createMiniBookCard(b))); }
             const catCount = {};
             booksCache.forEach(b => { if (b.category) catCount[b.category] = (catCount[b.category] || 0) + 1; });
             const sorted = Object.entries(catCount).sort((a, b) => b[1] - a[1]).slice(0, 12);
@@ -550,8 +557,7 @@
                 cl.textContent = '';
                 if (sorted.length === 0) { const p = document.createElement('p'); p.className = 'text-xs text-slate-500 italic'; p.textContent = 'Aucune catégorie.'; cl.append(p); }
                 else for (const [cat, count] of sorted) {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
+                    const btn = document.createElement('button'); btn.type = 'button';
                     btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-[#0b1120] text-slate-300 border border-slate-200/50 dark:border-slate-800 hover:bg-teal-600 hover:text-white hover:border-teal-600 transition';
                     btn.innerHTML = `<span>${escapeHtml(cat)}</span><span class="text-[9px] opacity-60">${count}</span>`;
                     btn.addEventListener('click', () => { currentCategoryFilter = cat; displayedCount = UI_PAGE_SIZE; switchTab('bibliotheque'); renderBooks(); });
@@ -560,10 +566,9 @@
             }
         }
 
-        // === TOAST ===
         let toastTimer;
         function showToast(message, type) {
-            const el = $('toast');
+            const el = $('toast'); if (!el) return;
             el.textContent = message;
             el.className = 'fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold shadow-2xl z-[60] transition-all duration-300 border backdrop-blur-xl ' + (type === 'error' ? 'bg-red-600/90 text-white border-red-500/30' : 'bg-teal-600/90 text-white border-teal-500/30');
             el.hidden = false;
@@ -572,7 +577,6 @@
             toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(() => { el.hidden = true; }, 300); }, 3000);
         }
 
-        // === IMAGES/PDF ===
         function imageLoads(url, timeout) { return new Promise((resolve) => { const img = new Image(); let done = false; const finish = (ok) => { if (done) return; done = true; resolve(ok); }; const t = setTimeout(() => finish(false), timeout || 8000); img.onload = () => { clearTimeout(t); finish(img.naturalWidth > 0 && img.naturalHeight > 0); }; img.onerror = () => { clearTimeout(t); finish(false); }; img.referrerPolicy = 'no-referrer'; img.src = url; }); }
         function getImageRatio(url) { return new Promise((resolve) => { const img = new Image(); img.onload = () => resolve(img.naturalHeight ? img.naturalWidth / img.naturalHeight : null); img.onerror = () => resolve(null); img.referrerPolicy = 'no-referrer'; img.src = url; }); }
         async function renderPdfFirstPage(pdfUrl, maxWidth) {
@@ -598,10 +602,7 @@
         function clampRatio(r) { if (!r || !isFinite(r)) return null; return Math.max(CUSTOM_RATIO_MIN, Math.min(CUSTOM_RATIO_MAX, r)); }
 
         async function generatePdfCover(book) {
-            if (book.kind === 'drive' && book.fileId) {
-                const url = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(book.fileId) + '&sz=w1200';
-                if (await imageLoads(url)) { const rawRatio = await getImageRatio(url); return { cover_url: url, cover_data: null, cover_ratio: clampPdfRatio(rawRatio), cover_source: 'pdf' }; }
-            }
+            if (book.kind === 'drive' && book.fileId) { const url = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(book.fileId) + '&sz=w1200'; if (await imageLoads(url)) { const rawRatio = await getImageRatio(url); return { cover_url: url, cover_data: null, cover_ratio: clampPdfRatio(rawRatio), cover_source: 'pdf' }; } }
             const pdfUrl = (book.kind === 'drive' && book.fileId) ? 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(book.fileId) : book.direct_url;
             if (pdfUrl) { try { const result = await withTimeout(renderPdfFirstPage(pdfUrl, COVER_MAX_WIDTH), 15000); if (result && result.data) return { cover_data: result.data, cover_url: null, cover_ratio: clampPdfRatio(result.ratio), cover_source: 'pdf' }; } catch (err) { console.warn(err); } }
             return null;
@@ -644,7 +645,6 @@
         }
         function coverSrcFor(book) { return book.cover_data || coverCache.get(book.id) || book.cover_url || book.thumb_url || PLACEHOLDER_COVER; }
 
-        // === FORMULAIRE COUVERTURE ===
         let pendingCoverImage = null, pendingCoverUrl = null;
         function processCoverImage(file, maxWidth) {
             return new Promise((resolve, reject) => {
@@ -672,6 +672,7 @@
         }
         function updateCoverPreview() {
             const wrap = $('coverPreviewWrap'), img = $('coverPreview'), label = $('coverPreviewLabel'), urlHint = $('coverUrlHint');
+            if (!wrap) return;
             if (pendingCoverImage) { img.src = pendingCoverImage.data; label.textContent = '📁 Aperçu : fichier importé (prioritaire)'; label.className = 'text-xs font-semibold text-teal-400 truncate'; if (urlHint) urlHint.textContent = '(ignoré)'; wrap.classList.remove('hidden'); wrap.classList.add('flex'); }
             else if (pendingCoverUrl) { img.src = pendingCoverUrl.url; label.textContent = '🌐 Aperçu : image via URL'; label.className = 'text-xs font-semibold text-slate-300 truncate'; if (urlHint) urlHint.textContent = ''; wrap.classList.remove('hidden'); wrap.classList.add('flex'); }
             else { img.removeAttribute('src'); if (urlHint) urlHint.textContent = ''; wrap.classList.add('hidden'); wrap.classList.remove('flex'); }
@@ -693,27 +694,12 @@
             const ratio = clampRatio(await getImageRatio(raw)) || A4_RATIO_NUM;
             pendingCoverUrl = { url: raw, ratio }; errEl.classList.add('hidden'); updateCoverPreview();
         }
-        function handleCoverClear() {
-            pendingCoverImage = null; pendingCoverUrl = null;
-            $('coverImage').value = ''; $('coverUrl').value = '';
-            $('coverUrlError').classList.add('hidden'); updateCoverPreview();
-        }
+        function handleCoverClear() { pendingCoverImage = null; pendingCoverUrl = null; $('coverImage').value = ''; $('coverUrl').value = ''; $('coverUrlError').classList.add('hidden'); updateCoverPreview(); }
 
-        // === DOWNLOAD / FAVORIS / DELETE ===
         function buildDownloadUrl(book) { if (book.kind === 'drive' && book.fileId) return 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(book.fileId) + '&confirm=t'; return book.direct_url || '#'; }
-        function incrementDownloads(id) {
-            const b = booksCache.find(x => x.id === id);
-            if (b) { b.downloads = (b.downloads || 0) + 1; renderBooks(); }
-            sb.rpc('increment_downloads', { p_book_id: id }).then(({ error }) => { if (error) console.warn(error); });
-        }
-        function triggerDownload(book) {
-            incrementDownloads(book.id);
-            const url = buildDownloadUrl(book);
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none'; iframe.src = url;
-            document.body.appendChild(iframe);
-            setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 5000);
-        }
+        function incrementDownloads(id) { const b = booksCache.find(x => x.id === id); if (b) { b.downloads = (b.downloads || 0) + 1; renderBooks(); } sb.rpc('increment_downloads', { p_book_id: id }).then(({ error }) => { if (error) console.warn(error); }); }
+        function triggerDownload(book) { incrementDownloads(book.id); const url = buildDownloadUrl(book); const iframe = document.createElement('iframe'); iframe.style.display = 'none'; iframe.src = url; document.body.appendChild(iframe); setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 5000); }
+
         async function toggleFavorite(id) {
             const b = booksCache.find(x => x.id === id); if (!b) return;
             const next = !b.favorite; b.favorite = next;
@@ -723,6 +709,7 @@
             const { error } = next ? await sb.from('favorites').insert({ user_id: currentUserId, book_id: id }) : await sb.from('favorites').delete().eq('user_id', currentUserId).eq('book_id', id);
             if (error) { b.favorite = !next; next ? favoritesSet.delete(id) : favoritesSet.add(id); renderBooks(); showToast('Action impossible.', 'error'); }
         }
+
         async function deleteBook(id, title) {
             if (!window.confirm('Supprimer « ' + (title || 'ce livre') + ' » ?')) return;
             const { error } = await sb.from('books').delete().eq('id', id);
@@ -730,16 +717,11 @@
             booksCache = booksCache.filter(b => b.id !== id);
             coverCache.delete(id); pendingCovers.delete(id); attemptedCovers.delete(id);
             ratioFixAttempted.delete(id); commentsCache.delete(id); bookTagsMap.delete(id);
-            // Retirer des collections
-            for (const [collId, bookIds] of collectionBooksMap.entries()) {
-                const filtered = bookIds.filter(bid => bid !== id);
-                collectionBooksMap.set(collId, filtered);
-            }
-            renderBooks(); scheduleHomeRefresh(); renderCollections();
+            for (const [collId, bookIds] of collectionBooksMap.entries()) collectionBooksMap.set(collId, bookIds.filter(bid => bid !== id));
+            renderBooks(); scheduleHomeRefresh(); renderCollections(); refreshProfile();
             showToast('Livre supprimé.');
         }
 
-        // === EXPORT / IMPORT ===
         function exportLibrary() {
             if (!booksCache.length) { showToast('Aucun livre à exporter.', 'error'); return; }
             const clean = booksCache.map(b => { const { _canDelete, comments_count, user_id, ...rest } = b; return rest; });
@@ -774,19 +756,16 @@
             reader.readAsText(file);
         }
 
-        // === THÈME ===
         function initTheme() { const savedTheme = localStorage.getItem('theme'); const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches; if (savedTheme === 'dark' || (!savedTheme && prefersDark)) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); }
         function toggleTheme() { const isDark = document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); }
 
-        // === VUES ===
         function updateViewUI() {
-            const grid = $('booksGrid');
+            const grid = $('booksGrid'); if (!grid) return;
             grid.classList.remove('view-grid', 'view-list', 'view-compact');
             grid.classList.add('view-' + currentView);
-            ['viewGridBtn', 'viewListBtn', 'viewCompactBtn'].forEach(id => { const btn = $(id); btn.classList.remove('bg-teal-600', 'text-white', 'shadow'); btn.classList.add('text-slate-400', 'hover:text-white'); });
+            ['viewGridBtn', 'viewListBtn', 'viewCompactBtn'].forEach(id => { const btn = $(id); if (!btn) return; btn.classList.remove('bg-teal-600', 'text-white', 'shadow'); btn.classList.add('text-slate-400', 'hover:text-white'); });
             const activeBtn = currentView === 'grid' ? 'viewGridBtn' : currentView === 'list' ? 'viewListBtn' : 'viewCompactBtn';
-            $(activeBtn).classList.remove('text-slate-400', 'hover:text-white');
-            $(activeBtn).classList.add('bg-teal-600', 'text-white', 'shadow');
+            const b = $(activeBtn); if (b) { b.classList.remove('text-slate-400', 'hover:text-white'); b.classList.add('bg-teal-600', 'text-white', 'shadow'); }
             localStorage.setItem('libraryViewMode', currentView);
         }
         function setView(mode) { currentView = mode; updateViewUI(); }
@@ -803,7 +782,7 @@
             if (activeView) activeView.classList.remove('hidden');
             const activeNav = $('navBtn' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
             if (activeNav) { activeNav.classList.remove('text-slate-400', 'hover:text-white'); activeNav.classList.add('text-teal-400'); }
-            if (tabName === 'profile') { updateProfileStats(); renderCollections(); }
+            if (tabName === 'profile') refreshProfile();
             if (tabName === 'accueil') scheduleHomeRefresh();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
@@ -828,12 +807,91 @@
             }
         }
 
-        // === RENDU ===
+        // === PROFIL ENRICHI ===
+        async function loadUserStats() {
+            if (!currentUserId) return null;
+            const { data, error } = await sb.rpc('user_stats', { p_user_id: currentUserId });
+            if (error) { console.warn('user_stats:', error.message); return null; }
+            return data;
+        }
+
+        function computeBadges(stats) {
+            const badges = [];
+            if (stats.total_books >= 1) badges.push({ icon: '🌱', name: 'Premier don' });
+            if (stats.total_books >= 5) badges.push({ icon: '📚', name: 'Bibliophile' });
+            if (stats.total_books >= 20) badges.push({ icon: '🏛️', name: 'Pilier' });
+            if (stats.total_downloads >= 10) badges.push({ icon: '📈', name: 'Populaire' });
+            if (stats.total_downloads >= 100) badges.push({ icon: '🔥', name: 'Star' });
+            if (stats.total_reviews_given >= 1) badges.push({ icon: '💬', name: 'Critique' });
+            if (stats.total_reviews_given >= 10) badges.push({ icon: '✍️', name: 'Plume' });
+            if (stats.avg_rating >= 4 && stats.total_books >= 3) badges.push({ icon: '⭐', name: 'Qualité' });
+            if (stats.total_collections >= 1) badges.push({ icon: '📂', name: 'Organisé' });
+            if (stats.total_favorites >= 5) badges.push({ icon: '❤️', name: 'Collectionneur' });
+            if (stats.total_tags_used >= 5) badges.push({ icon: '🏷️', name: 'Métadonnées' });
+            return badges;
+        }
+
+        function renderBadges(stats) {
+            const list = $('badgesList'); if (!list) return;
+            const badges = computeBadges(stats);
+            $('badgesCount').textContent = `(${badges.length})`;
+            list.textContent = '';
+            if (badges.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'text-xs text-slate-500 italic';
+                p.textContent = 'Publiez un livre pour débloquer votre premier badge !';
+                list.append(p);
+                return;
+            }
+            for (const b of badges) {
+                const chip = document.createElement('div');
+                chip.className = 'badge-chip';
+                chip.innerHTML = `<span>${b.icon}</span><span>${escapeHtml(b.name)}</span>`;
+                list.append(chip);
+            }
+        }
+
+        function renderMyContributions() {
+            const list = $('myBooksList'); if (!list) return;
+            const mine = booksCache.filter(b => b.user_id === currentUserId);
+            $('myBooksCount').textContent = `(${mine.length})`;
+            list.textContent = '';
+            if (mine.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'text-xs text-slate-500 italic text-center py-6 col-span-full';
+                p.textContent = 'Vous n\'avez pas encore publié de livre.';
+                list.append(p);
+                return;
+            }
+            for (const b of mine.slice(0, 6)) list.append(createMiniBookCard(b));
+        }
+
+        async function refreshProfile() {
+            updateProfileStats();
+            const stats = await loadUserStats();
+            if (stats) {
+                $('statDownloads').textContent   = stats.total_downloads || 0;
+                $('statAvgRating').textContent   = (stats.avg_rating || 0).toFixed(1);
+                $('statReviewsGiven').textContent = stats.total_reviews_given || 0;
+                renderBadges(stats);
+            } else {
+                const mine = booksCache.filter(b => b.user_id === currentUserId);
+                const dls = mine.reduce((s, b) => s + (b.downloads || 0), 0);
+                $('statDownloads').textContent = dls;
+                $('statAvgRating').textContent = '0.0';
+                $('statReviewsGiven').textContent = '0';
+                renderBadges({ total_books: mine.length, total_downloads: dls, total_reviews_given: 0, avg_rating: 0, total_collections: collectionsCache.length, total_favorites: mine.filter(b => b.favorite).length, total_tags_used: 0 });
+            }
+            renderMyContributions();
+            renderCollections();
+        }
+
         let renderQueued = false;
         function scheduleRender() { if (renderQueued) return; renderQueued = true; requestAnimationFrame(() => { renderQueued = false; renderBooks(); }); }
 
         function renderSkeletons(count) {
-            const grid = $('booksGrid'); grid.textContent = '';
+            const grid = $('booksGrid'); if (!grid) return;
+            grid.textContent = '';
             const frag = document.createDocumentFragment();
             for (let i = 0; i < (count || 6); i++) {
                 const card = document.createElement('div');
@@ -858,24 +916,24 @@
             img.className = 'absolute inset-0 w-full h-full ' + (isPdfCover ? 'object-contain pdf-cover-img' : 'object-cover');
             img.addEventListener('error', () => { if (img.src !== PLACEHOLDER_COVER) img.src = PLACEHOLDER_COVER; }, { once: true });
             cover.append(img);
-
+            if (isPdfCover && !book.cover_ratio && book.cover_data && !ratioFixAttempted.has(book.id)) {
+                ratioFixAttempted.add(book.id);
+                const probe = new Image();
+                probe.onload = () => { const r = probe.naturalWidth / probe.naturalHeight; const c = clampPdfRatio(r); if (c) { persistCover(book.id, { cover_ratio: c }); scheduleRender(); } };
+                probe.onerror = () => {}; probe.src = book.cover_data;
+            }
             if (pendingCovers.has(book.id) && src === PLACEHOLDER_COVER) {
                 const badge = document.createElement('span');
                 badge.className = 'absolute bottom-2 left-1/2 -translate-x-1/2 text-[9px] bg-slate-900/90 text-teal-300 px-2 py-0.5 rounded z-10 shadow backdrop-blur-md border border-white/10';
-                badge.textContent = '⏳ Chargement...';
-                cover.append(badge);
+                badge.textContent = '⏳ Chargement...'; cover.append(badge);
             }
-
             const cat = document.createElement('span');
             cat.className = 'book-category-badge text-[9px] bg-teal-600/90 text-white py-0.5 px-2 rounded font-semibold uppercase tracking-wider backdrop-blur-md shadow-sm';
-            cat.textContent = book.category || 'Général';
-            cover.append(cat);
+            cat.textContent = book.category || 'Général'; cover.append(cat);
 
-            // Bouton Ajouter à une collection
             const collBtn = document.createElement('button');
             collBtn.type = 'button';
             collBtn.className = 'book-collection-btn absolute top-2 right-24 z-10 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 text-slate-900 dark:text-white rounded w-6 h-6 flex items-center justify-center transition backdrop-blur-md shadow';
-            collBtn.title = 'Ajouter à une collection';
             collBtn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>';
             collBtn.addEventListener('click', (e) => { e.stopPropagation(); openAddToCollectionModal(book.id); });
             cover.append(collBtn);
@@ -894,7 +952,6 @@
                 editBtn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
                 editBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(book.id); });
                 cover.append(editBtn);
-
                 const del = document.createElement('button');
                 del.type = 'button';
                 del.className = 'book-delete-btn text-slate-300 hover:text-white transition shadow';
@@ -913,7 +970,6 @@
             ratingWrap.innerHTML = `<span>${avgStars}</span> <span class="text-slate-400 font-normal">(${book.rating || '0.0'})</span> <span class="text-teal-400 ml-0.5">💬 ${book.comments_count ?? (book.comments?.length || 0)}</span>`;
             ratingWrap.addEventListener('click', () => openReviewsModal(book.id));
             const pDesc = document.createElement('p'); pDesc.className = 'book-desc text-slate-600 dark:text-slate-300 text-[10px] mb-1.5 break-words line-clamp-2 leading-tight'; pDesc.textContent = book.description || 'Pas de description.';
-
             textWrapper.append(h3, pAuthor, ratingWrap, pDesc);
 
             if (Array.isArray(book.tags) && book.tags.length > 0) {
@@ -954,7 +1010,7 @@
         }
 
         function renderCategoryChips(books) {
-            const container = $('categoryChips');
+            const container = $('categoryChips'); if (!container) return;
             const categories = ['TOUT', '❤️ Favoris', ...new Set(books.map(b => b.category).filter(Boolean))];
             container.textContent = '';
             for (const cat of categories) {
@@ -977,6 +1033,7 @@
         function renderBooks() {
             const allBooks = booksCache;
             const grid = $('booksGrid'), counter = $('bookCount'), sentinel = $('infiniteScrollSentinel');
+            if (!grid) return;
             if (!initialLoadDone) { renderSkeletons(6); counter.textContent = 'Chargement…'; sentinel.classList.add('hidden'); return; }
             renderCategoryChips(allBooks);
             const query = currentSearchQuery.toLowerCase().trim();
@@ -1014,7 +1071,6 @@
             observer.observe(sentinel);
         }
 
-        // === MODAL AVIS ===
         async function openReviewsModal(bookId) {
             const book = booksCache.find(b => b.id === bookId); if (!book) return;
             $('modalBookId').value = book.id; $('modalBookTitle').textContent = 'Avis : ' + book.title;
@@ -1049,7 +1105,6 @@
             renderBooks(); showToast('Avis publié !');
         }
 
-        // === MODAL ÉDITION ===
         function openEditModal(bookId) {
             const book = booksCache.find(b => b.id === bookId); if (!book) return;
             $('editBookId').value = book.id; $('editTitle').value = book.title || ''; $('editAuthor').value = book.author || '';
@@ -1074,10 +1129,9 @@
             Object.assign(book, update); coverCache.delete(bookId);
             const newTags = parseTags(newTagsStr);
             await updateBookTags(bookId, newTags); book.tags = newTags;
-            closeEditModal(); renderBooks(); scheduleHomeRefresh(); showToast('Livre modifié !');
+            closeEditModal(); renderBooks(); scheduleHomeRefresh(); refreshProfile(); showToast('Livre modifié !');
         }
 
-        // === TAGS ===
         function parseTags(str) { return [...new Set(String(str || '').split(',').map(t => t.trim().toLowerCase()).filter(t => t.length >= 2 && t.length <= 30))].slice(0, 5); }
         async function upsertTags(tagNames) {
             if (tagNames.length === 0) return [];
@@ -1097,10 +1151,8 @@
             bookTagsMap.set(bookId, tags.map(t => t.name));
         }
 
-        // === COLLECTIONS ===
         function renderCollections() {
-            const list = $('collectionsList');
-            if (!list) return;
+            const list = $('collectionsList'); if (!list) return;
             $('collectionsCount').textContent = `(${collectionsCache.length})`;
             list.textContent = '';
             if (collectionsCache.length === 0) {
@@ -1128,12 +1180,8 @@
             }
         }
 
-        function openNewCollectionModal() {
-            $('collectionName').value = ''; $('collectionDescription').value = ''; $('collectionPublic').checked = false;
-            $('newCollectionModal').classList.remove('hidden');
-        }
+        function openNewCollectionModal() { $('collectionName').value = ''; $('collectionDescription').value = ''; $('collectionPublic').checked = false; $('newCollectionModal').classList.remove('hidden'); }
         function closeNewCollectionModal() { $('newCollectionModal').classList.add('hidden'); }
-
         async function handleNewCollectionSubmit(e) {
             e.preventDefault();
             const name = $('collectionName').value.trim();
@@ -1143,7 +1191,7 @@
             const { data, error } = await sb.from('collections').insert({ user_id: currentUserId, name, description, is_public }).select().single();
             if (error) { showToast('Création impossible : ' + error.message, 'error'); return; }
             collectionsCache.unshift(data);
-            closeNewCollectionModal(); renderCollections();
+            closeNewCollectionModal(); renderCollections(); refreshProfile();
             showToast('Collection créée ! 📚');
         }
 
@@ -1169,8 +1217,7 @@
                 const isIn = (collectionBooksMap.get(c.id) || []).includes(bookId);
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition border ' +
-                    (isIn ? 'bg-teal-600/20 border-teal-500/50 text-teal-300' : 'bg-slate-50 dark:bg-[#0b1120] border-slate-200 dark:border-slate-800 text-slate-300 hover:border-teal-500/50');
+                btn.className = 'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition border ' + (isIn ? 'bg-teal-600/20 border-teal-500/50 text-teal-300' : 'bg-slate-50 dark:bg-[#0b1120] border-slate-200 dark:border-slate-800 text-slate-300 hover:border-teal-500/50');
                 btn.innerHTML = `<span class="truncate">${escapeHtml(c.name)}</span><span class="text-[10px]">${isIn ? '✓ Ajouté' : '+ Ajouter'}</span>`;
                 btn.addEventListener('click', async () => {
                     if (isIn) {
@@ -1209,7 +1256,6 @@
                     if (book) container.append(createMiniBookCard(book));
                 }
             }
-            // Bouton supprimer visible seulement si c'est notre collection
             $('deleteCollectionBtn').style.display = (c.user_id === currentUserId) ? 'inline' : 'none';
             $('deleteCollectionBtn').onclick = () => deleteCollection(collectionId);
             $('viewCollectionModal').classList.remove('hidden');
@@ -1223,14 +1269,12 @@
             if (error) { showToast('Suppression impossible.', 'error'); return; }
             collectionsCache = collectionsCache.filter(x => x.id !== collectionId);
             collectionBooksMap.delete(collectionId);
-            closeViewCollectionModal(); renderCollections();
+            closeViewCollectionModal(); renderCollections(); refreshProfile();
             showToast('Collection supprimée.');
         }
 
-        // === MODAL LOGIN ===
         function openLoginModal() { $('loginStep1').classList.remove('hidden'); $('loginStep2').classList.add('hidden'); $('loginEmail').value = ''; $('loginModal').classList.remove('hidden'); }
         function closeLoginModal() { $('loginModal').classList.add('hidden'); }
-
         async function handleLoginSubmit(e) {
             e.preventDefault();
             const email = $('loginEmail').value.trim(); if (!email) return;
@@ -1254,7 +1298,6 @@
         }
         async function handleSignOut() { if (!window.confirm('Se déconnecter ?')) return; await sb.auth.signOut(); localStorage.removeItem('profileName'); location.reload(); }
 
-        // === FORMULAIRE PRINCIPAL ===
         function showLinkError(msg) { const el = $('linkError'); if (msg) { el.textContent = msg; el.classList.remove('hidden'); } else { el.textContent = ''; el.classList.add('hidden'); } }
         function handleCategoryChange() { const s = $('categorySelect'), c = $('categoryCustom'); if (s.value === 'Autre...') { c.classList.remove('hidden'); c.required = true; c.focus(); } else { c.classList.add('hidden'); c.required = false; c.value = ''; } }
         function getSelectedCategory() { const s = $('categorySelect'), c = $('categoryCustom'); return s.value === 'Autre...' ? c.value.trim() : s.value; }
@@ -1291,12 +1334,11 @@
             $('autoPdfCover').checked = false; pendingCoverImage = null; pendingCoverUrl = null;
             $('coverUrlError').classList.add('hidden'); updateCoverPreview();
             displayedCount = UI_PAGE_SIZE;
-            renderBooks(); scheduleHomeRefresh();
+            renderBooks(); scheduleHomeRefresh(); refreshProfile();
             showToast('Livre publié !');
             switchTab('bibliotheque');
         }
 
-        // === REALTIME ===
         function subscribeRealtime() {
             if (realtimeChannel) sb.removeChannel(realtimeChannel);
             realtimeChannel = sb.channel('biblio-live')
@@ -1308,7 +1350,6 @@
                 .subscribe();
         }
 
-        // === BOOTSTRAP ===
         async function bootstrapSupabase() {
             if (!window.supabase) { showToast('SDK Supabase introuvable.', 'error'); return false; }
             sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } });
@@ -1337,7 +1378,6 @@
             return true;
         }
 
-        // === INIT ===
         async function init() {
             initTheme();
             $('themeToggleBtn').addEventListener('click', toggleTheme);
@@ -1365,8 +1405,6 @@
             $('loginForm').addEventListener('submit', handleLoginSubmit);
             $('loginBackBtn').addEventListener('click', () => { $('loginStep1').classList.remove('hidden'); $('loginStep2').classList.add('hidden'); });
             $('signOutBtn').addEventListener('click', handleSignOut);
-
-            // Collections
             $('newCollectionBtn').addEventListener('click', openNewCollectionModal);
             $('closeNewCollectionBtn').addEventListener('click', closeNewCollectionModal);
             $('newCollectionModal').addEventListener('click', (e) => { if (e.target === $('newCollectionModal')) closeNewCollectionModal(); });
@@ -1376,12 +1414,10 @@
             $('addToCollectionNewBtn').addEventListener('click', () => { closeAddToCollectionModal(); openNewCollectionModal(); });
             $('closeViewCollectionBtn').addEventListener('click', closeViewCollectionModal);
             $('viewCollectionModal').addEventListener('click', (e) => { if (e.target === $('viewCollectionModal')) closeViewCollectionModal(); });
-
             let searchTimer = null;
             $('searchInput').addEventListener('input', (e) => { clearTimeout(searchTimer); const v = e.target.value; searchTimer = setTimeout(() => { currentSearchQuery = v; displayedCount = UI_PAGE_SIZE; renderBooks(); }, 250); });
             $('minRatingFilter').addEventListener('change', (e) => { currentMinRating = Number(e.target.value); displayedCount = UI_PAGE_SIZE; renderBooks(); });
             $('sortSelect').addEventListener('change', (e) => { currentSort = e.target.value; displayedCount = UI_PAGE_SIZE; renderBooks(); });
-
             $('saveProfileBtn').addEventListener('click', async () => {
                 const name = $('userNameInput').value.trim() || 'Membre solidaire';
                 localStorage.setItem('profileName', name); $('profileNameDisplay').textContent = name;
@@ -1389,15 +1425,12 @@
                 if (error) { showToast('Erreur.', 'error'); return; }
                 updateProfileStats(); showToast('Profil mis à jour !');
             });
-
             const savedView = localStorage.getItem('libraryViewMode');
             if (savedView && ['grid', 'list', 'compact'].includes(savedView)) currentView = savedView;
             $('viewGridBtn').addEventListener('click', () => setView('grid'));
             $('viewListBtn').addEventListener('click', () => setView('list'));
             $('viewCompactBtn').addEventListener('click', () => setView('compact'));
-
             updateViewUI(); updateProfileStats(); initInfiniteScroll(); renderSkeletons(6);
-
             const ok = await bootstrapSupabase();
             if (!ok) $('booksGrid').innerHTML = '<p class="text-red-400 text-sm col-span-full text-center py-12">Connexion au cloud impossible.</p>';
             else renderHomeSections();
