@@ -1,0 +1,15 @@
+{
+  "name": "Bibliothèque Solidaire",
+  "short_name": "BiblioSolidaire",
+  "description": "Partagez, évaluez et téléchargez des ressources numériques",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1120",
+  "theme_color": "#0d9488",
+  "lang": "fr",
+  "icons": [
+    { "src": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230d9488'/%3E%3Cpath d='M256 128v256m0-256c-32-16-80-32-128-32v256c48 0 96 16 128 32m0-256c32-16 80-32 128-32v256c-48 0-96 16-128 32' stroke='white' stroke-width='32' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
