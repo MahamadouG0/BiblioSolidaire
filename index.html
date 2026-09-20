@@ -178,6 +178,16 @@
 
             <div id="globalStats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4"></div>
 
+            <!-- Nouveautés des abonnements -->
+            <section id="followedBooksSection" class="space-y-3 hidden">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>👥</span> Nouveautés de vos abonnements
+                    </h2>
+                </div>
+                <div id="followedBooksList" class="h-scroll no-scrollbar"></div>
+            </section>
+
             <section class="space-y-3">
                 <div class="flex items-center justify-between"><h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2"><span>📈</span> Tendances du moment</h2><button onclick="switchTab('bibliotheque')" class="text-xs text-teal-400 hover:underline font-semibold">Tout voir →</button></div>
                 <div id="trendingList" class="h-scroll no-scrollbar"></div>
@@ -322,6 +332,13 @@
 
             <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 space-y-4">
                 <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>👥</span> Mes abonnements <span id="followsCount" class="text-xs font-normal text-slate-400">(0)</span></h2>
+                </div>
+                <div id="myFollowsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+
+            <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 space-y-4">
+                <div class="flex items-center justify-between">
                     <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>📚</span> Mes collections <span id="collectionsCount" class="text-xs font-normal text-slate-400">(0)</span></h2>
                     <button id="newCollectionBtn" type="button" data-umami-event="collection-nouvelle" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition shadow-lg shadow-teal-600/25"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>Nouvelle</button>
                 </div>
@@ -355,9 +372,9 @@
                         <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">1.</span><span><strong>Publiez un livre</strong> — depuis l'onglet Partager, il suffit d'un lien Google Drive et de quelques informations.</span></li>
                         <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">2.</span><span><strong>Laissez des avis</strong> — aidez la communauté en donnant votre opinion honnête.</span></li>
                         <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">3.</span><span><strong>Répondez aux avis</strong> — engagez la discussion avec les autres membres.</span></li>
-                        <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">4.</span><span><strong>Créez des collections</strong> — partagez vos meilleures sélections sur un thème.</span></li>
-                        <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">5.</span><span><strong>Utilisez les tags</strong> — facilitez la découverte par d'autres utilisateurs.</span></li>
-                        <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">6.</span><span><strong>Signalez les contenus inappropriés</strong> — gardons la communauté saine.</span></li>
+                        <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">4.</span><span><strong>Suivez vos auteurs préférés</strong> — abonnez-vous à un contributeur pour recevoir ses nouveaux livres.</span></li>
+                        <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">5.</span><span><strong>Créez des collections</strong> — partagez vos meilleures sélections sur un thème.</span></li>
+                        <li class="flex gap-2.5"><span class="text-teal-400 mt-0.5">6.</span><span><strong>Utilisez les tags</strong> — facilitez la découverte par d'autres utilisateurs.</span></li>
                     </ul>
                 </section>
 
@@ -389,6 +406,10 @@
                         <details class="bg-slate-50 dark:bg-[#0b1120] rounded-xl border border-slate-200/50 dark:border-slate-800 p-3">
                             <summary class="text-xs font-bold text-slate-900 dark:text-white">Comment obtenir le badge Vérifié ?</summary>
                             <p class="text-xs text-slate-500 mt-2">Publiez régulièrement des livres de qualité, laissez des avis constructifs et respectez les règles. L'équipe attribue le badge manuellement aux contributeurs actifs et bienveillants.</p>
+                        </details>
+                        <details class="bg-slate-50 dark:bg-[#0b1120] rounded-xl border border-slate-200/50 dark:border-slate-800 p-3">
+                            <summary class="text-xs font-bold text-slate-900 dark:text-white">Que se passe-t-il quand je suis un auteur ?</summary>
+                            <p class="text-xs text-slate-500 mt-2">Vous recevez une notification à chaque nouveau livre publié par cet auteur, et ses nouveautés apparaissent en priorité sur votre page d'accueil.</p>
                         </details>
                         <details class="bg-slate-50 dark:bg-[#0b1120] rounded-xl border border-slate-200/50 dark:border-slate-800 p-3">
                             <summary class="text-xs font-bold text-slate-900 dark:text-white">Où sont stockés mes livres ?</summary>
@@ -683,6 +704,7 @@
         let notificationsCache = [];
         let deferredInstallPrompt = null;
         const verifiedUsersSet = new Set();
+        const followedUsersSet = new Set();
         const favoritesSet = new Set();
         const commentsCache = new Map();
         const coverCache = new Map();
@@ -748,6 +770,100 @@
             const { data, error } = await sb.rpc('list_verified_users');
             if (error) { console.warn('list_verified_users:', error.message); return; }
             (data || []).forEach(u => verifiedUsersSet.add(u.id));
+        }
+
+        async function loadMyFollows() {
+            if (!currentUserId) return;
+            followedUsersSet.clear();
+            const { data, error } = await sb.rpc('my_follows', { p_user_id: currentUserId });
+            if (error) { console.warn('my_follows:', error.message); return; }
+            (data || []).forEach(f => followedUsersSet.add(f.followed_id));
+        }
+
+        async function toggleFollow(userId) {
+            if (!userId || userId === currentUserId) return;
+            const isFollowing = followedUsersSet.has(userId);
+            if (isFollowing) {
+                const { error } = await sb.from('follows').delete().eq('follower_id', currentUserId).eq('followed_id', userId);
+                if (error) { showToast('Impossible de se désabonner.', 'error'); return; }
+                followedUsersSet.delete(userId);
+                showToast('Désabonné');
+            } else {
+                const { error } = await sb.from('follows').insert({ follower_id: currentUserId, followed_id: userId });
+                if (error) { showToast('Impossible de suivre.', 'error'); return; }
+                followedUsersSet.add(userId);
+                showToast('Abonnement ajouté ✅');
+            }
+            renderBooks();
+            renderMyFollows();
+            loadFollowedBooks();
+        }
+
+        async function renderMyFollows() {
+            const container = $('myFollowsList');
+            if (!container) return;
+            if (!currentUserId) { container.textContent = ''; return; }
+            const { data, error } = await sb.rpc('my_follows', { p_user_id: currentUserId });
+            if (error) { console.warn(error); return; }
+            const list = data || [];
+            const countEl = $('followsCount');
+            if (countEl) countEl.textContent = `(${list.length})`;
+            container.textContent = '';
+            if (list.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'text-xs text-slate-500 italic text-center py-6 col-span-full';
+                p.textContent = 'Vous ne suivez personne. Cliquez sur "+ Suivre" sous un livre pour suivre son auteur.';
+                container.append(p); return;
+            }
+            for (const f of list) {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-50 dark:bg-[#0b1120] p-3 rounded-xl border border-slate-200/50 dark:border-slate-800 flex items-center gap-3';
+                const initials = (f.display_name || 'MS').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'MS';
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-400 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-teal-500/20 shrink-0">${escapeHtml(initials)}</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-slate-900 dark:text-white truncate flex items-center">${escapeHtml(f.display_name)}${verifiedBadge(f.verified)}</p>
+                        <p class="text-[10px] text-slate-400">${f.books_count} livre(s)</p>
+                    </div>
+                    <button type="button" data-unfollow="${f.followed_id}" class="text-[10px] px-2 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-600 hover:text-white font-semibold transition">Retirer</button>
+                `;
+                container.append(card);
+            }
+            container.querySelectorAll('[data-unfollow]').forEach(btn => {
+                btn.addEventListener('click', () => toggleFollow(btn.dataset.unfollow));
+            });
+        }
+
+        async function loadFollowedBooks() {
+            if (!currentUserId) return;
+            const section = $('followedBooksSection');
+            const container = $('followedBooksList');
+            if (!section || !container) return;
+            const { data, error } = await sb.rpc('books_from_followed', { p_user_id: currentUserId, p_limit: 10 });
+            if (error) { console.warn('books_from_followed:', error.message); return; }
+            const list = data || [];
+            if (list.length === 0) { section.classList.add('hidden'); return; }
+            section.classList.remove('hidden');
+            container.textContent = '';
+            for (const b of list) {
+                const card = document.createElement('a');
+                card.href = '#'; card.className = 'book-card block bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-teal-500/30 overflow-hidden shadow-md hover:shadow-xl transition';
+                card.addEventListener('click', (e) => { e.preventDefault(); openReviewsModal(b.id); });
+                const cover = document.createElement('div');
+                cover.className = 'relative overflow-hidden bg-slate-100 dark:bg-[#0b1120]'; cover.style.aspectRatio = '0.707';
+                const img = document.createElement('img');
+                img.src = b.cover_url || PLACEHOLDER_COVER; img.alt = b.title; img.loading = 'lazy'; img.decoding = 'async';
+                img.className = 'absolute inset-0 w-full h-full ' + (b.cover_source === 'pdf' ? 'object-contain' : 'object-cover');
+                img.addEventListener('error', () => { if (img.src !== PLACEHOLDER_COVER) img.src = PLACEHOLDER_COVER; }, { once: true });
+                cover.append(img);
+                const content = document.createElement('div'); content.className = 'p-2';
+                const h = document.createElement('h4'); h.className = 'text-[11px] font-bold text-slate-900 dark:text-white line-clamp-2 leading-tight'; h.textContent = b.title;
+                const a = document.createElement('p'); a.className = 'text-[9px] text-teal-400 mt-0.5 line-clamp-1 flex items-center';
+                a.innerHTML = '👤 ' + escapeHtml(b.uploader_name) + verifiedBadge(b.uploader_verified);
+                content.append(h, a);
+                card.append(cover, content);
+                container.append(card);
+            }
         }
 
         async function loadTagsAndBookTags() {
@@ -940,11 +1056,10 @@
             for (const n of notificationsCache) {
                 const div = document.createElement('div');
                 div.className = 'notif-item px-4 py-3 border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer' + (n.is_read ? '' : ' notif-unread');
+                const icon = n.type === 'comment' ? '💬' : n.type === 'favorite' ? '❤️' : n.type === 'reply' ? '↩️' : n.type === 'new_book' ? '📚' : '🔔';
                 div.innerHTML = `
                     <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center shrink-0">
-                            ${n.type === 'comment' ? '💬' : n.type === 'favorite' ? '❤️' : n.type === 'reply' ? '↩️' : '🔔'}
-                        </div>
+                        <div class="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center shrink-0">${icon}</div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-bold text-slate-900 dark:text-white">${escapeHtml(n.title)}</p>
                             <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-2">${escapeHtml(n.message)}</p>
@@ -1358,7 +1473,7 @@
                 $('statDownloads').textContent = dls; $('statAvgRating').textContent = '0.0'; $('statReviewsGiven').textContent = '0';
                 renderBadges({ total_books: mine.length, total_downloads: dls, total_reviews_given: 0, avg_rating: 0, total_collections: collectionsCache.length, total_favorites: mine.filter(b => b.favorite).length, total_tags_used: 0 });
             }
-            renderMyContributions(); renderCollections();
+            renderMyContributions(); renderCollections(); renderMyFollows();
         }
 
         let renderQueued = false;
@@ -1447,8 +1562,20 @@
             content.className = 'book-content flex flex-col justify-between p-2.5 flex-1';
             const textWrapper = document.createElement('div');
             const h3 = document.createElement('h3'); h3.className = 'text-xs font-bold text-slate-900 dark:text-white break-words mb-0.5 line-clamp-1'; h3.textContent = book.title || 'Sans titre';
-            const pAuthor = document.createElement('p'); pAuthor.className = 'text-[10px] text-slate-400 mb-1 font-medium line-clamp-1 flex items-center';
-            pAuthor.innerHTML = 'Par ' + escapeHtml(book.author || 'Inconnu') + verifiedBadge(verifiedUsersSet.has(book.user_id));
+            const pAuthor = document.createElement('p'); pAuthor.className = 'text-[10px] text-slate-400 mb-1 font-medium line-clamp-1 flex items-center gap-1';
+            const authorSpan = document.createElement('span');
+            authorSpan.className = 'truncate';
+            authorSpan.innerHTML = 'Par ' + escapeHtml(book.author || 'Inconnu') + verifiedBadge(verifiedUsersSet.has(book.user_id));
+            pAuthor.append(authorSpan);
+            if (book.user_id && book.user_id !== currentUserId) {
+                const followBtn = document.createElement('button');
+                followBtn.type = 'button';
+                const isFollowing = followedUsersSet.has(book.user_id);
+                followBtn.className = 'shrink-0 text-[9px] px-1.5 py-0.5 rounded font-semibold transition ' + (isFollowing ? 'bg-teal-500/20 text-teal-300' : 'bg-slate-500/20 text-slate-400 hover:bg-teal-600 hover:text-white');
+                followBtn.textContent = isFollowing ? '✓ Suivi' : '+ Suivre';
+                followBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFollow(book.user_id); });
+                pAuthor.append(followBtn);
+            }
             const ratingWrap = document.createElement('button'); ratingWrap.type = 'button'; ratingWrap.className = 'flex items-center gap-1 text-[10px] text-amber-400 font-semibold mb-1 hover:underline';
             const avgStars = book.rating > 0 ? '★'.repeat(Math.round(book.rating)) : '☆☆☆☆☆';
             ratingWrap.innerHTML = `<span>${avgStars}</span> <span class="text-slate-400 font-normal">(${book.rating || '0.0'})</span> <span class="text-teal-400 ml-0.5">💬 ${book.comments_count ?? (book.comments?.length || 0)}</span>`;
@@ -1636,23 +1763,13 @@
             e.preventDefault();
             const bookId = $('modalBookId').value, author = $('commentAuthor').value.trim(), text = $('commentText').value.trim();
             if (!author || !text) { showToast('Veuillez remplir tous les champs.', 'error'); return; }
-
-            const insertData = {
-                book_id: bookId,
-                user_id: currentUserId,
-                author,
-                text,
-                rating: replyTo ? 5 : selectedRating
-            };
+            const insertData = { book_id: bookId, user_id: currentUserId, author, text, rating: replyTo ? 5 : selectedRating };
             if (replyTo) insertData.parent_id = replyTo.id;
-
             const isReply = !!replyTo;
             const { error } = await sb.from('comments').insert(insertData);
             if (error) { showToast('Publication impossible.', 'error'); return; }
-
             $('commentText').value = '';
             cancelReply();
-
             const comments = await loadComments(bookId);
             renderCommentsList(comments);
             const b = booksCache.find(x => x.id === bookId);
@@ -1976,7 +2093,6 @@
             $('statReportsPending').textContent = pending;
             $('statReportsResolved').textContent = resolved;
             $('statReportsDismissed').textContent = dismissed;
-
             document.querySelectorAll('.admin-filter-btn').forEach(btn => {
                 const f = btn.dataset.filter;
                 if (f === adminFilter) {
@@ -1987,7 +2103,6 @@
                     btn.classList.add('bg-slate-100', 'dark:bg-[#0b1120]', 'text-slate-400', 'border', 'border-slate-200/50', 'dark:border-slate-800');
                 }
             });
-
             const filtered = adminFilter === 'all' ? adminReportsCache : adminReportsCache.filter(r => r.status === adminFilter);
             list.textContent = '';
             if (filtered.length === 0) {
@@ -1996,10 +2111,8 @@
                 p.textContent = 'Aucun signalement dans cette catégorie.';
                 list.append(p); return;
             }
-
             const statusLabel = { pending: '⏳ En attente', resolved: '✅ Résolu', dismissed: '🗑️ Rejeté' };
             const statusColor = { pending: 'bg-amber-500/15 text-amber-400', resolved: 'bg-emerald-500/15 text-emerald-400', dismissed: 'bg-slate-500/15 text-slate-400' };
-
             for (const r of filtered) {
                 const div = document.createElement('div');
                 div.className = 'bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 space-y-3';
@@ -2027,7 +2140,6 @@
                 `;
                 list.append(div);
             }
-
             list.querySelectorAll('[data-action]').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const action = btn.dataset.action;
@@ -2104,7 +2216,7 @@
         function subscribeRealtime() {
             if (realtimeChannel) sb.removeChannel(realtimeChannel);
             realtimeChannel = sb.channel('biblio-live')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'books' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await reloadFromScratch(); displayedCount = Math.max(displayedCount, UI_PAGE_SIZE); renderBooks(); loadGlobalStats(); loadTopContributors(); loadTopContributorsMonth(); }, 400); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'books' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await reloadFromScratch(); displayedCount = Math.max(displayedCount, UI_PAGE_SIZE); renderBooks(); loadGlobalStats(); loadTopContributors(); loadTopContributorsMonth(); loadFollowedBooks(); }, 400); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, (p) => {
                     const bid = p.new?.book_id || p.old?.book_id;
                     if (!bid) return;
@@ -2116,6 +2228,7 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'book_tags' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadTagsAndBookTags(); renderBooks(); }, 500); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'collections' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadCollections(); }, 400); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'collection_books' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadCollections(); }, 400); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'follows' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadMyFollows(); renderBooks(); renderMyFollows(); loadFollowedBooks(); }, 400); })
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => { loadVerifiedUsers().then(() => { renderBooks(); loadTopContributors(); refreshProfile(); }); })
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${currentUserId}` }, (payload) => {
                     const n = payload.new;
@@ -2156,6 +2269,7 @@
             if (prof?.display_name) localStorage.setItem('profileName', prof.display_name);
             await loadFavorites();
             await loadVerifiedUsers();
+            await loadMyFollows();
             await loadTagsAndBookTags();
             await loadCollections();
             await loadBooksPage(true);
@@ -2163,6 +2277,7 @@
             loadGlobalStats();
             loadTopContributors();
             loadTopContributorsMonth();
+            loadFollowedBooks();
             loadNotifications();
             subscribeRealtime();
             requestNotificationPermission();
@@ -2269,4 +2384,5 @@
     </script>
 </body>
 </html>
+
 
