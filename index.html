@@ -158,7 +158,6 @@
 
     <div class="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl">
         
-        <!-- ACCUEIL -->
         <div id="viewAccueil" class="space-y-8">
             <header class="text-center max-w-2xl mx-auto space-y-3 pt-2">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold tracking-wide uppercase border border-teal-500/20">Plateforme collaborative</span>
@@ -178,7 +177,15 @@
 
             <div id="globalStats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4"></div>
 
-            <!-- Nouveautés des abonnements -->
+            <section id="recommendedSection" class="space-y-3 hidden">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>✨</span> Recommandé pour vous
+                    </h2>
+                </div>
+                <div id="recommendedBooksList" class="h-scroll no-scrollbar"></div>
+            </section>
+
             <section id="followedBooksSection" class="space-y-3 hidden">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
@@ -254,6 +261,7 @@
                 </form>
             </div>
         </div>
+
 
         <!-- BIBLIOTHÈQUE -->
         <div id="viewBibliotheque" class="space-y-6 hidden">
@@ -379,6 +387,13 @@
                 </section>
 
                 <section class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>✨</span> Recommandations personnalisées</h2>
+                    <p class="text-slate-600 dark:text-slate-300">
+                        Ajoutez des livres à vos <strong>favoris</strong> et l'algorithme vous proposera automatiquement d'autres livres similaires (mêmes catégories, tags similaires, bonnes notes).
+                    </p>
+                </section>
+
+                <section class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                     <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>✓</span> Le badge Vérifié</h2>
                     <p class="text-slate-600 dark:text-slate-300">
                         Les contributeurs de confiance reçoivent un <span class="verified-badge">✓</span> <strong>badge bleu Vérifié</strong> à côté de leur nom. Ce badge est attribué manuellement par l'équipe aux membres qui publient régulièrement des contenus de qualité et respectent les règles de la communauté.
@@ -408,8 +423,8 @@
                             <p class="text-xs text-slate-500 mt-2">Publiez régulièrement des livres de qualité, laissez des avis constructifs et respectez les règles. L'équipe attribue le badge manuellement aux contributeurs actifs et bienveillants.</p>
                         </details>
                         <details class="bg-slate-50 dark:bg-[#0b1120] rounded-xl border border-slate-200/50 dark:border-slate-800 p-3">
-                            <summary class="text-xs font-bold text-slate-900 dark:text-white">Que se passe-t-il quand je suis un auteur ?</summary>
-                            <p class="text-xs text-slate-500 mt-2">Vous recevez une notification à chaque nouveau livre publié par cet auteur, et ses nouveautés apparaissent en priorité sur votre page d'accueil.</p>
+                            <summary class="text-xs font-bold text-slate-900 dark:text-white">Comment fonctionnent les recommandations ?</summary>
+                            <p class="text-xs text-slate-500 mt-2">L'algorithme analyse les catégories et tags de vos favoris, ainsi que les notes et la popularité des livres, pour vous suggérer des lectures similaires. Plus vous ajoutez de favoris, plus les recommandations sont pertinentes.</p>
                         </details>
                         <details class="bg-slate-50 dark:bg-[#0b1120] rounded-xl border border-slate-200/50 dark:border-slate-800 p-3">
                             <summary class="text-xs font-bold text-slate-900 dark:text-white">Où sont stockés mes livres ?</summary>
@@ -866,6 +881,43 @@
             }
         }
 
+        async function loadRecommendedBooks() {
+            if (!currentUserId) return;
+            const section = $('recommendedSection');
+            const container = $('recommendedBooksList');
+            if (!section || !container) return;
+            const { data, error } = await sb.rpc('recommended_books', { p_user_id: currentUserId, p_limit: 8 });
+            if (error) { console.warn('recommended_books:', error.message); return; }
+            const list = data || [];
+            if (list.length === 0) { section.classList.add('hidden'); return; }
+            section.classList.remove('hidden');
+            container.textContent = '';
+            for (const b of list) {
+                const card = document.createElement('a');
+                card.href = '#'; card.className = 'book-card block bg-gradient-to-br from-teal-500/5 to-emerald-500/5 dark:from-teal-500/10 dark:to-emerald-500/10 backdrop-blur-md border border-teal-500/30 overflow-hidden shadow-md hover:shadow-xl transition';
+                card.addEventListener('click', (e) => { e.preventDefault(); openReviewsModal(b.id); });
+                const cover = document.createElement('div');
+                cover.className = 'relative overflow-hidden bg-slate-100 dark:bg-[#0b1120]'; cover.style.aspectRatio = '0.707';
+                const img = document.createElement('img');
+                img.src = b.cover_url || PLACEHOLDER_COVER; img.alt = b.title; img.loading = 'lazy'; img.decoding = 'async';
+                img.className = 'absolute inset-0 w-full h-full ' + (b.cover_source === 'pdf' ? 'object-contain' : 'object-cover');
+                img.addEventListener('error', () => { if (img.src !== PLACEHOLDER_COVER) img.src = PLACEHOLDER_COVER; }, { once: true });
+                cover.append(img);
+                const badge = document.createElement('span');
+                badge.className = 'absolute top-2 left-2 z-10 text-[9px] bg-gradient-to-r from-teal-500 to-emerald-500 text-white px-2 py-0.5 rounded font-bold shadow-md';
+                badge.textContent = '✨ Pour vous';
+                cover.append(badge);
+                const content = document.createElement('div'); content.className = 'p-2';
+                const h = document.createElement('h4'); h.className = 'text-[11px] font-bold text-slate-900 dark:text-white line-clamp-2 leading-tight'; h.textContent = b.title;
+                const a = document.createElement('p'); a.className = 'text-[9px] text-teal-400 mt-0.5 line-clamp-1'; a.textContent = '📚 ' + (b.category || 'Général');
+                const r = document.createElement('p'); r.className = 'text-[9px] text-amber-400 mt-0.5 font-semibold';
+                r.textContent = b.rating > 0 ? '★ ' + b.rating + '/5' : 'Nouveau';
+                content.append(h, a, r);
+                card.append(cover, content);
+                container.append(card);
+            }
+        }
+
         async function loadTagsAndBookTags() {
             const { data: tags, error: e1 } = await sb.from('tags').select('*');
             if (!e1 && tags) { tagsCache.clear(); tags.forEach(t => tagsCache.set(t.id, t)); }
@@ -1297,7 +1349,8 @@
             favFlashId = id; renderBooks();
             showToast(next ? 'Ajouté aux favoris ❤️' : 'Retiré des favoris');
             const { error } = next ? await sb.from('favorites').insert({ user_id: currentUserId, book_id: id }) : await sb.from('favorites').delete().eq('user_id', currentUserId).eq('book_id', id);
-            if (error) { b.favorite = !next; next ? favoritesSet.delete(id) : favoritesSet.add(id); renderBooks(); showToast('Action impossible.', 'error'); }
+            if (error) { b.favorite = !next; next ? favoritesSet.delete(id) : favoritesSet.add(id); renderBooks(); showToast('Action impossible.', 'error'); return; }
+            loadRecommendedBooks();
         }
 
         async function deleteBook(id, title) {
@@ -2216,7 +2269,7 @@
         function subscribeRealtime() {
             if (realtimeChannel) sb.removeChannel(realtimeChannel);
             realtimeChannel = sb.channel('biblio-live')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'books' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await reloadFromScratch(); displayedCount = Math.max(displayedCount, UI_PAGE_SIZE); renderBooks(); loadGlobalStats(); loadTopContributors(); loadTopContributorsMonth(); loadFollowedBooks(); }, 400); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'books' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await reloadFromScratch(); displayedCount = Math.max(displayedCount, UI_PAGE_SIZE); renderBooks(); loadGlobalStats(); loadTopContributors(); loadTopContributorsMonth(); loadFollowedBooks(); loadRecommendedBooks(); }, 400); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, (p) => {
                     const bid = p.new?.book_id || p.old?.book_id;
                     if (!bid) return;
@@ -2229,6 +2282,7 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'collections' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadCollections(); }, 400); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'collection_books' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadCollections(); }, 400); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'follows' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadMyFollows(); renderBooks(); renderMyFollows(); loadFollowedBooks(); }, 400); })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'favorites' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadFavorites(); renderBooks(); loadRecommendedBooks(); }, 400); })
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, () => { loadVerifiedUsers().then(() => { renderBooks(); loadTopContributors(); refreshProfile(); }); })
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${currentUserId}` }, (payload) => {
                     const n = payload.new;
@@ -2278,6 +2332,7 @@
             loadTopContributors();
             loadTopContributorsMonth();
             loadFollowedBooks();
+            loadRecommendedBooks();
             loadNotifications();
             subscribeRealtime();
             requestNotificationPermission();
