@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0d9488">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BiblioSolidaire">
     <title>Bibliothèque Solidaire & Partage</title>
-    <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Biblioth%C3%A8que%20Solidaire%22%2C%22short_name%22%3A%22BiblioSolidaire%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f172a%22%2C%22theme_color%22%3A%22%230d9488%22%2C%22icons%22%3A%5B%5D%7D'>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230d9488'/%3E%3Cpath d='M256 128v256m0-256c-32-16-80-32-128-32v256c48 0 96 16 128 32m0-256c32-16 80-32 128-32v256c-48 0-96 16-128 32' stroke='white' stroke-width='32' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
@@ -64,6 +69,12 @@
         .dark .collection-card { background: rgba(11,17,32,0.5); border-color: rgba(30,41,59,0.8); }
         .collection-card:hover { border-color: #0d9488; transform: translateY(-2px); }
         .badge-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.65rem; border-radius: 0.65rem; background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.3); font-size: 0.7rem; font-weight: 600; color: #5eead4; }
+        .notif-item { transition: background 0.15s; }
+        .notif-item:hover { background: rgba(20,184,166,0.05); }
+        .notif-unread { background: rgba(20,184,166,0.08); border-left: 3px solid #14b8a6; }
+        @keyframes bellShake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-15deg)} 75%{transform:rotate(15deg)} }
+        .bell-shake { animation: bellShake 0.5s ease; }
+        .notif-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; background: #ef4444; color: white; font-size: 10px; font-weight: 700; border-radius: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid #0b1120; }
     </style>
 </head>
 <body class="bg-[#0b1120] text-slate-100 min-h-screen selection:bg-teal-500 selection:text-white transition-colors duration-300 pb-24 lg:pb-12">
@@ -76,15 +87,22 @@
                 </div>
                 <span class="tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-emerald-500 dark:from-teal-400 dark:to-emerald-300">BiblioSolidaire</span>
             </a>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 sm:gap-4">
                 <button onclick="switchTab('bibliotheque')" class="hidden sm:inline-flex text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition">Catalogue</button>
                 <button onclick="switchTab('accueil')" class="hidden sm:inline-flex text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition">Partager</button>
                 <div class="h-5 w-[1px] bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
                 <div class="flex items-center gap-2">
-                    <button id="exportBtn" type="button" title="Exporter (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
+                    <button id="installPwaBtn" type="button" title="Installer l'app" class="hidden p-2.5 rounded-xl bg-teal-600 text-white hover:bg-teal-500 transition shadow-sm border border-teal-500/50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                    <button id="notifBtn" type="button" title="Notifications" class="relative p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span id="notifBadge" class="notif-badge hidden">0</span>
+                    </button>
+                    <button id="exportBtn" type="button" title="Exporter (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80 hidden sm:block">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                     </button>
-                    <button id="importBtn" type="button" title="Importer (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80">
+                    <button id="importBtn" type="button" title="Importer (JSON)" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/50 hover:text-teal-600 dark:hover:text-teal-400 transition shadow-sm border border-slate-200/50 dark:border-slate-800/80 hidden sm:block">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     </button>
                     <input type="file" id="importFile" accept=".json" class="hidden">
@@ -97,9 +115,20 @@
         </div>
     </nav>
 
+    <!-- Panneau notifications (dropdown) -->
+    <div id="notifPanel" class="fixed top-16 right-0 sm:right-4 z-50 w-full sm:w-96 max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl hidden sm:rounded-2xl sm:mt-2 max-h-[80vh] flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"><svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>Notifications</h3>
+            <div class="flex items-center gap-2">
+                <button id="markAllReadBtn" type="button" class="text-[10px] text-teal-400 hover:underline font-semibold">Tout lire</button>
+                <button id="closeNotifBtn" type="button" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+        </div>
+        <div id="notifList" class="flex-1 overflow-y-auto"></div>
+    </div>
+
     <div class="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl">
         
-        <!-- ACCUEIL -->
         <div id="viewAccueil" class="space-y-8">
             <header class="text-center max-w-2xl mx-auto space-y-3 pt-2">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-xs font-semibold tracking-wide uppercase border border-teal-500/20">Plateforme collaborative</span>
@@ -112,7 +141,7 @@
                 <div class="space-y-2 relative z-10 text-center sm:text-left">
                     <span class="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-medium tracking-wide uppercase mb-1">Communauté ouverte</span>
                     <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Rejoignez le mouvement du savoir partagé</h2>
-                    <p class="text-sm text-teal-100 max-w-lg leading-relaxed">Découvrez des centaines de livres partagés par les membres ou contribuez dès maintenant en publiant vos documents PDF.</p>
+                    <p class="text-sm text-teal-100 max-w-lg leading-relaxed">Découvrez des centaines de livres partagés par les membres ou contribuez dès maintenant.</p>
                 </div>
                 <div class="relative z-10 shrink-0"><button onclick="switchTab('bibliotheque')" class="bg-white text-teal-900 font-bold px-6 py-3.5 rounded-xl text-xs sm:text-sm shadow-lg hover:bg-teal-50 transition transform hover:-translate-y-0.5">Explorer le catalogue</button></div>
             </div>
@@ -196,7 +225,7 @@
             <div id="infiniteScrollSentinel" class="py-6 text-center text-xs text-slate-500 hidden"><span class="inline-flex items-center gap-2"><svg class="w-4 h-4 animate-spin text-teal-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Chargement...</span></div>
         </div>
 
-        <!-- PROFIL ENRICHI -->
+        <!-- PROFIL -->
         <div id="viewProfile" class="space-y-6 hidden max-w-2xl mx-auto">
             <header class="text-center space-y-1">
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Mon Profil</h1>
@@ -210,8 +239,6 @@
                     <div class="bg-slate-50 dark:bg-[#0b1120] p-4 rounded-xl border border-slate-200/50 dark:border-slate-800"><span id="statBooksCount" class="block text-2xl font-extrabold text-teal-400">0</span><span class="text-xs text-slate-400 font-medium">Livres partagés</span></div>
                     <div class="bg-slate-50 dark:bg-[#0b1120] p-4 rounded-xl border border-slate-200/50 dark:border-slate-800"><span id="statFavoritesCount" class="block text-2xl font-extrabold text-teal-400">0</span><span class="text-xs text-slate-400 font-medium">Favoris</span></div>
                 </div>
-
-                <!-- STATS PERSONNELLES ENRICHIES -->
                 <div class="grid grid-cols-3 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                     <div class="bg-slate-50 dark:bg-[#0b1120] p-3 rounded-xl border border-slate-200/50 dark:border-slate-800 text-center">
                         <span id="statDownloads" class="block text-xl font-extrabold text-teal-400">0</span>
@@ -226,16 +253,10 @@
                         <span class="text-[10px] text-slate-400 font-medium">Avis donnés</span>
                     </div>
                 </div>
-
-                <!-- BADGES -->
                 <div class="pt-4 text-left space-y-3 border-t border-slate-100 dark:border-slate-800">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>🏅</span> Mes badges
-                        <span id="badgesCount" class="text-xs font-normal text-slate-400"></span>
-                    </h3>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>🏅</span> Mes badges <span id="badgesCount" class="text-xs font-normal text-slate-400"></span></h3>
                     <div id="badgesList" class="flex flex-wrap gap-2"></div>
                 </div>
-
                 <div id="upgradeBanner" class="pt-4 text-left space-y-3 border-t border-slate-100 dark:border-slate-800">
                     <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 space-y-2">
                         <div class="flex items-start gap-2.5"><svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg><div class="flex-1"><p class="text-xs font-semibold text-amber-300">Sauvegardez votre compte</p><p class="text-[11px] text-amber-200/80 mt-0.5 leading-snug">Ajoutez un email pour retrouver vos livres sur tous vos appareils.</p></div></div>
@@ -249,29 +270,15 @@
                 <div id="signOutSection" class="pt-2 hidden"><button id="signOutBtn" type="button" class="text-xs text-slate-400 hover:text-red-400 transition font-medium">Se déconnecter</button></div>
             </div>
 
-            <!-- MES CONTRIBUTIONS -->
             <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>📖</span> Mes contributions
-                        <span id="myBooksCount" class="text-xs font-normal text-slate-400">(0)</span>
-                    </h2>
-                    <button onclick="switchTab('accueil')" class="text-xs text-teal-400 hover:underline font-semibold">Publier +</button>
-                </div>
+                <div class="flex items-center justify-between"><h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>📖</span> Mes contributions <span id="myBooksCount" class="text-xs font-normal text-slate-400">(0)</span></h2><button onclick="switchTab('accueil')" class="text-xs text-teal-400 hover:underline font-semibold">Publier +</button></div>
                 <div id="myBooksList" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
             </div>
 
-            <!-- MES COLLECTIONS -->
             <div class="bg-white/80 dark:bg-slate-900/85 backdrop-blur-xl p-6 sm:p-8 rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/80 dark:border-slate-800 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>📚</span> Mes collections
-                        <span id="collectionsCount" class="text-xs font-normal text-slate-400">(0)</span>
-                    </h2>
-                    <button id="newCollectionBtn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition shadow-lg shadow-teal-600/25">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-                        Nouvelle
-                    </button>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><span>📚</span> Mes collections <span id="collectionsCount" class="text-xs font-normal text-slate-400">(0)</span></h2>
+                    <button id="newCollectionBtn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition shadow-lg shadow-teal-600/25"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>Nouvelle</button>
                 </div>
                 <div id="collectionsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
             </div>
@@ -364,7 +371,6 @@
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="toast" role="status" aria-live="polite" hidden class="fixed bottom-24 lg:bottom-8 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold shadow-2xl z-[60] transition-all duration-300 border backdrop-blur-xl" style="opacity:0;"></div>
 
     <script>
@@ -402,6 +408,8 @@
         let bookTagsMap = new Map();
         let collectionsCache = [];
         let collectionBooksMap = new Map();
+        let notificationsCache = [];
+        let deferredInstallPrompt = null;
         const favoritesSet = new Set();
         const commentsCache = new Map();
         const coverCache = new Map();
@@ -412,6 +420,14 @@
         function uid() { return (window.crypto && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10); }
         function withTimeout(p, ms, label) { return new Promise((res, rej) => { const t = setTimeout(() => rej(new Error(label || 'Délai dépassé')), ms); p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); }); }); }
         function escapeHtml(s) { return String(s || '').replace(/[&<>'"]/g, t => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[t] || t)); }
+        function timeAgo(dateStr) {
+            const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+            if (diff < 60) return 'à l\'instant';
+            if (diff < 3600) return Math.floor(diff/60) + ' min';
+            if (diff < 86400) return Math.floor(diff/3600) + ' h';
+            if (diff < 604800) return Math.floor(diff/86400) + ' j';
+            return new Date(dateStr).toLocaleDateString('fr-FR');
+        }
 
         const PLACEHOLDER_COVER = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 594"><rect width="420" height="594" fill="#0b1120"/><rect x="50" y="60" width="320" height="474" rx="16" fill="#1e293b" stroke="#334155" stroke-width="3"/><path d="M100 170h220M100 230h220M100 290h160" stroke="#475569" stroke-width="12" stroke-linecap="round"/><text x="210" y="460" font-family="sans-serif" font-size="20" fill="#94a3b8" text-anchor="middle">Aperçu indisponible</text></svg>');
 
@@ -447,6 +463,7 @@
             };
         }
 
+        // ============ LOAD ============
         async function loadFavorites() { favoritesSet.clear(); if (!currentUserId) return; const { data, error } = await sb.from('favorites').select('book_id'); if (error) { console.warn(error); return; } (data || []).forEach(f => favoritesSet.add(f.book_id)); }
 
         async function loadTagsAndBookTags() {
@@ -518,6 +535,107 @@
             }
         }
 
+        // ============ NOTIFICATIONS ============
+        async function loadNotifications() {
+            if (!currentUserId) return;
+            const { data, error } = await sb.from('notifications').select('*').eq('user_id', currentUserId).order('created_at', { ascending: false }).limit(50);
+            if (error) { console.warn('notif:', error.message); return; }
+            notificationsCache = data || [];
+            renderNotifications();
+        }
+
+        function renderNotifications() {
+            const badge = $('notifBadge');
+            const list = $('notifList');
+            const unread = notificationsCache.filter(n => !n.is_read).length;
+            if (badge) { if (unread > 0) { badge.textContent = unread > 99 ? '99+' : unread; badge.classList.remove('hidden'); } else badge.classList.add('hidden'); }
+            if (!list) return;
+            list.textContent = '';
+            if (notificationsCache.length === 0) {
+                const p = document.createElement('p');
+                p.className = 'text-xs text-slate-500 italic text-center py-8 px-4';
+                p.textContent = 'Aucune notification pour le moment.';
+                list.append(p); return;
+            }
+            for (const n of notificationsCache) {
+                const div = document.createElement('div');
+                div.className = 'notif-item px-4 py-3 border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer' + (n.is_read ? '' : ' notif-unread');
+                div.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center shrink-0">
+                            ${n.type === 'comment' ? '💬' : n.type === 'favorite' ? '❤️' : '🔔'}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-slate-900 dark:text-white">${escapeHtml(n.title)}</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-2">${escapeHtml(n.message)}</p>
+                            <p class="text-[10px] text-slate-500 mt-1">${timeAgo(n.created_at)}</p>
+                        </div>
+                        ${n.is_read ? '' : '<span class="w-2 h-2 rounded-full bg-teal-400 shrink-0 mt-1.5"></span>'}
+                    </div>
+                `;
+                div.addEventListener('click', async () => {
+                    if (!n.is_read) {
+                        await sb.from('notifications').update({ is_read: true }).eq('id', n.id);
+                        n.is_read = true; renderNotifications();
+                    }
+                    if (n.book_id) {
+                        const book = booksCache.find(b => b.id === n.book_id);
+                        if (book) { closeNotifPanel(); openReviewsModal(book.id); }
+                    }
+                });
+                list.append(div);
+            }
+        }
+
+        function openNotifPanel() { const p = $('notifPanel'); if (p) p.classList.remove('hidden'); }
+        function closeNotifPanel() { const p = $('notifPanel'); if (p) p.classList.add('hidden'); }
+
+        async function markAllNotificationsRead() {
+            const unreadIds = notificationsCache.filter(n => !n.is_read).map(n => n.id);
+            if (unreadIds.length === 0) return;
+            await sb.from('notifications').update({ is_read: true }).in('id', unreadIds);
+            notificationsCache.forEach(n => n.is_read = true);
+            renderNotifications();
+            showToast('Toutes les notifications marquées comme lues');
+        }
+
+        // ============ PWA ============
+        function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) return;
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('[PWA] SW enregistré', reg.scope);
+                }).catch(err => console.warn('[PWA] Erreur SW:', err));
+            });
+        }
+
+        function setupInstallPrompt() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstallPrompt = e;
+                const btn = $('installPwaBtn');
+                if (btn) btn.classList.remove('hidden');
+            });
+            const btn = $('installPwaBtn');
+            if (btn) {
+                btn.addEventListener('click', async () => {
+                    if (!deferredInstallPrompt) return;
+                    deferredInstallPrompt.prompt();
+                    const { outcome } = await deferredInstallPrompt.userChoice;
+                    if (outcome === 'accepted') showToast('Merci d\'avoir installé BiblioSolidaire ! 🎉');
+                    deferredInstallPrompt = null;
+                    btn.classList.add('hidden');
+                });
+            }
+            window.addEventListener('appinstalled', () => {
+                deferredInstallPrompt = null;
+                const b = $('installPwaBtn');
+                if (b) b.classList.add('hidden');
+                showToast('Application installée ! 📱');
+            });
+        }
+
+        // ============ ACCUEIL ============
         let homeRefreshQueued = false;
         function scheduleHomeRefresh() { if (homeRefreshQueued) return; homeRefreshQueued = true; requestAnimationFrame(() => { homeRefreshQueued = false; renderHomeSections(); }); }
 
@@ -784,6 +902,7 @@
             if (activeNav) { activeNav.classList.remove('text-slate-400', 'hover:text-white'); activeNav.classList.add('text-teal-400'); }
             if (tabName === 'profile') refreshProfile();
             if (tabName === 'accueil') scheduleHomeRefresh();
+            closeNotifPanel();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -807,7 +926,6 @@
             }
         }
 
-        // === PROFIL ENRICHI ===
         async function loadUserStats() {
             if (!currentUserId) return null;
             const { data, error } = await sb.rpc('user_stats', { p_user_id: currentUserId });
@@ -840,8 +958,7 @@
                 const p = document.createElement('p');
                 p.className = 'text-xs text-slate-500 italic';
                 p.textContent = 'Publiez un livre pour débloquer votre premier badge !';
-                list.append(p);
-                return;
+                list.append(p); return;
             }
             for (const b of badges) {
                 const chip = document.createElement('div');
@@ -860,8 +977,7 @@
                 const p = document.createElement('p');
                 p.className = 'text-xs text-slate-500 italic text-center py-6 col-span-full';
                 p.textContent = 'Vous n\'avez pas encore publié de livre.';
-                list.append(p);
-                return;
+                list.append(p); return;
             }
             for (const b of mine.slice(0, 6)) list.append(createMiniBookCard(b));
         }
@@ -1347,7 +1463,26 @@
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'book_tags' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadTagsAndBookTags(); renderBooks(); }, 500); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'collections' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadCollections(); }, 400); })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'collection_books' }, () => { clearTimeout(realtimeReloadTimer); realtimeReloadTimer = setTimeout(async () => { await loadCollections(); }, 400); })
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${currentUserId}` }, (payload) => {
+                    const n = payload.new;
+                    if (n) {
+                        notificationsCache.unshift(n);
+                        renderNotifications();
+                        const badge = $('notifBtn'); if (badge) { badge.classList.add('bell-shake'); setTimeout(() => badge.classList.remove('bell-shake'), 600); }
+                        showToast('🔔 ' + n.title);
+                        if (Notification.permission === 'granted') {
+                            new Notification('BiblioSolidaire', { body: n.title + ' — ' + n.message, icon: './manifest.json' });
+                        }
+                    }
+                })
                 .subscribe();
+        }
+
+        async function requestNotificationPermission() {
+            if (!('Notification' in window)) return;
+            if (Notification.permission === 'default') {
+                try { await Notification.requestPermission(); } catch {}
+            }
         }
 
         async function bootstrapSupabase() {
@@ -1374,12 +1509,17 @@
             await loadCollections();
             await loadBooksPage(true);
             loadGlobalStats();
+            loadNotifications();
             subscribeRealtime();
+            requestNotificationPermission();
             return true;
         }
 
         async function init() {
             initTheme();
+            registerServiceWorker();
+            setupInstallPrompt();
+
             $('themeToggleBtn').addEventListener('click', toggleTheme);
             $('exportBtn').addEventListener('click', exportLibrary);
             $('importBtn').addEventListener('click', () => $('importFile').click());
@@ -1391,6 +1531,17 @@
             $('coverUrl').addEventListener('input', (e) => { clearTimeout(coverUrlTimer); const v = e.target.value; coverUrlTimer = setTimeout(() => handleCoverUrlChange(v), 400); });
             $('coverClear').addEventListener('click', handleCoverClear);
             $('categorySelect').addEventListener('change', handleCategoryChange);
+
+            // Notifications
+            $('notifBtn').addEventListener('click', (e) => { e.stopPropagation(); const p = $('notifPanel'); if (p.classList.contains('hidden')) openNotifPanel(); else closeNotifPanel(); });
+            $('closeNotifBtn').addEventListener('click', closeNotifPanel);
+            $('markAllReadBtn').addEventListener('click', markAllNotificationsRead);
+            document.addEventListener('click', (e) => {
+                const p = $('notifPanel'); if (!p || p.classList.contains('hidden')) return;
+                if (e.target.closest('#notifPanel') || e.target.closest('#notifBtn')) return;
+                closeNotifPanel();
+            });
+
             $('closeModalBtn').addEventListener('click', closeReviewsModal);
             $('reviewsModal').addEventListener('click', (e) => { if (e.target === $('reviewsModal')) closeReviewsModal(); });
             $('reviewForm').addEventListener('submit', handleReviewSubmit);
@@ -1414,10 +1565,12 @@
             $('addToCollectionNewBtn').addEventListener('click', () => { closeAddToCollectionModal(); openNewCollectionModal(); });
             $('closeViewCollectionBtn').addEventListener('click', closeViewCollectionModal);
             $('viewCollectionModal').addEventListener('click', (e) => { if (e.target === $('viewCollectionModal')) closeViewCollectionModal(); });
+
             let searchTimer = null;
             $('searchInput').addEventListener('input', (e) => { clearTimeout(searchTimer); const v = e.target.value; searchTimer = setTimeout(() => { currentSearchQuery = v; displayedCount = UI_PAGE_SIZE; renderBooks(); }, 250); });
             $('minRatingFilter').addEventListener('change', (e) => { currentMinRating = Number(e.target.value); displayedCount = UI_PAGE_SIZE; renderBooks(); });
             $('sortSelect').addEventListener('change', (e) => { currentSort = e.target.value; displayedCount = UI_PAGE_SIZE; renderBooks(); });
+
             $('saveProfileBtn').addEventListener('click', async () => {
                 const name = $('userNameInput').value.trim() || 'Membre solidaire';
                 localStorage.setItem('profileName', name); $('profileNameDisplay').textContent = name;
@@ -1425,12 +1578,15 @@
                 if (error) { showToast('Erreur.', 'error'); return; }
                 updateProfileStats(); showToast('Profil mis à jour !');
             });
+
             const savedView = localStorage.getItem('libraryViewMode');
             if (savedView && ['grid', 'list', 'compact'].includes(savedView)) currentView = savedView;
             $('viewGridBtn').addEventListener('click', () => setView('grid'));
             $('viewListBtn').addEventListener('click', () => setView('list'));
             $('viewCompactBtn').addEventListener('click', () => setView('compact'));
+
             updateViewUI(); updateProfileStats(); initInfiniteScroll(); renderSkeletons(6);
+
             const ok = await bootstrapSupabase();
             if (!ok) $('booksGrid').innerHTML = '<p class="text-red-400 text-sm col-span-full text-center py-12">Connexion au cloud impossible.</p>';
             else renderHomeSections();
